@@ -24,15 +24,19 @@
 #include "hal.h"
 #include "conf_general.h"
 
-#ifdef HW_SHUTDOWN_HOLD_ON
 #define SHUTDOWN_RESET()					shutdown_reset_timer()
+
+#ifdef HW_SHUTDOWN_HOLD_ON
 #define SHUTDOWN_BUTTON_PRESSED				shutdown_button_pressed()
 #define SHUTDOWN_SET_SAMPLING_DISABLED(d)	shutdown_set_sampling_disabled(d)
 #else
-#define SHUTDOWN_RESET()
 #define SHUTDOWN_BUTTON_PRESSED				false
 #define SHUTDOWN_SET_SAMPLING_DISABLED(d)
 #endif
+
+#define SHUTDOWN_SAVE_BACKUPDATA_TIMEOUT 60*1 
+/* time of inactivity after wich backup 
+data (odometer, time, conf ...) is stored to emulated eeprom */
 
 // Fucntions
 void shutdown_init(void);

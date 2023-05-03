@@ -59,18 +59,6 @@
 #define CURRENT_FILTER_OFF()	palClearPad(GPIOD, 2)
 #endif
 
-// Shutdown pin
-#define HW_SHUTDOWN_GPIO		GPIOD
-#define HW_SHUTDOWN_PIN			2
-#define HW_SHUTDOWN_HOLD_ON()	palSetPad(HW_SHUTDOWN_GPIO, HW_SHUTDOWN_PIN); \
-                                chThdSleepMilliseconds(100)
-#define HW_SHUTDOWN_HOLD_OFF()	palClearPad(HW_SHUTDOWN_GPIO, HW_SHUTDOWN_PIN); \
-                                chThdSleepMilliseconds(1000);
-#define HW_SAMPLE_SHUTDOWN()	hw_sample_shutdown_button() //not used
-
-#define HW_EARLY_INIT()			palSetPadMode(HW_SHUTDOWN_GPIO, HW_SHUTDOWN_PIN, PAL_MODE_OUTPUT_PUSHPULL); \
-								HW_SHUTDOWN_HOLD_ON()
-
 // Internal RC osc
 //#define HW_USE_INTERNAL_RC
 

@@ -26,7 +26,7 @@
 
 #define SHUTDOWN_RESET()					shutdown_reset_timer()
 
-#ifdef HW_SHUTDOWN_HOLD_ON
+#if defined(HW_SHUTDOWN_HOLD_ON) && !defined(HW_HAS_BRIERU_POWERSWITCH)
 #define SHUTDOWN_BUTTON_PRESSED				shutdown_button_pressed()
 #define SHUTDOWN_SET_SAMPLING_DISABLED(d)	shutdown_set_sampling_disabled(d)
 #else
@@ -34,9 +34,11 @@
 #define SHUTDOWN_SET_SAMPLING_DISABLED(d)
 #endif
 
-#define SHUTDOWN_SAVE_BACKUPDATA_TIMEOUT 60*1 
-/* time of inactivity after wich backup 
-data (odometer, time, conf ...) is stored to emulated eeprom */
+#define SHUTDOWN_SAVE_BACKUPDATA_TIMEOUT 60*2 
+// time of inactivity after wich backup data (odometer, running time, ...) is
+// stored to emulated eeprom when not using power switch. Must be greater than
+// average stopping time, usually semaphores require 120s max, so 60*3s or 
+// more should be pretty safe
 
 // Fucntions
 void shutdown_init(void);

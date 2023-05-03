@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
-#ifndef HW_100_200_H_
-#define HW_100_200_H_ 
+#ifndef HW_BR_85_200_H_
+#define HW_BR_85_200_H_ 
 
-#define HW_NAME					"BRIESC_100_200"
+#define HW_NAME					"BRIESC_85_200"
 
 
 // HW properties
@@ -29,6 +29,7 @@
 #define HW_HAS_PHASE_FILTERS
 //#define HW_HAS_CURRENT_FILTER
 
+#define HW_HAS_BRIERU_POWERSWITCH
 
 // Macros
 
@@ -125,7 +126,7 @@
 #define V_REG					3.26
 #endif
 #ifndef VIN_R1
-#define VIN_R1					60400.0
+#define VIN_R1					56000.0
 #endif
 #ifndef VIN_R2
 #define VIN_R2					2200.0
@@ -260,7 +261,7 @@
 #define MCCONF_L_MIN_VOLTAGE			13.0		// Minimum input voltage
 #endif
 #ifndef MCCONF_L_MAX_VOLTAGE
-#define MCCONF_L_MAX_VOLTAGE			86.0	// Maximum input voltage
+#define MCCONF_L_MAX_VOLTAGE			80.0	// Maximum input voltage
 #endif
 #ifndef MCCONF_DEFAULT_MOTOR_TYPE
 #define MCCONF_DEFAULT_MOTOR_TYPE		MOTOR_TYPE_FOC
@@ -269,7 +270,7 @@
 #define MCCONF_FOC_F_ZV					28000.0
 #endif
 #ifndef MCCONF_L_MAX_ABS_CURRENT
-#define MCCONF_L_MAX_ABS_CURRENT		250.0	// The maximum absolute current above which a fault is generated
+#define MCCONF_L_MAX_ABS_CURRENT		200.0	// The maximum absolute current above which a fault is generated
 #endif
 #ifndef MCCONF_FOC_SAMPLE_V0_V7
 #define MCCONF_FOC_SAMPLE_V0_V7			false	// Run control loop in both v0 and v7 (requires phase shunts)
@@ -282,10 +283,10 @@
 #endif
 
 // Setting limits
-#define HW_LIM_CURRENT			-450.0, 450.0
+#define HW_LIM_CURRENT			-380.0, 380.0
 #define HW_LIM_CURRENT_IN		-200.0, 200.0
-#define HW_LIM_CURRENT_ABS		0.0, 500.0
-#define HW_LIM_VIN				13.0, 96.0
+#define HW_LIM_CURRENT_ABS		0.0, 420.0
+#define HW_LIM_VIN				13.0, 80.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1
 #define HW_LIM_DUTY_MAX			0.0, 0.96
@@ -294,4 +295,4 @@
 // HW-specific functions
 float briesc_get_temp(void);
 
-#endif /* HW_100_200_H_ */
+#endif /* HW_BR_85_200_H_ */

@@ -301,7 +301,6 @@ int main(void) {
 
 	shutdown_init();
 
-
 	imu_reset_orientation();
 
 	chThdSleepMilliseconds(500);

@@ -43,7 +43,7 @@ typedef struct {
 } matcher;
 
 
-#define NUM_FIXED_SIZE_TOKENS 15
+#define NUM_FIXED_SIZE_TOKENS 16
 const matcher fixed_size_tokens[NUM_FIXED_SIZE_TOKENS] = {
   {"(", TOKOPENPAR, 1},
   {")", TOKCLOSEPAR, 1},
@@ -59,7 +59,8 @@ const matcher fixed_size_tokens[NUM_FIXED_SIZE_TOKENS] = {
   {"{", TOKOPENCURL, 1},
   {"}", TOKCLOSECURL, 1},
   {"@const-start", TOKCONSTSTART, 12},
-  {"@const-end", TOKCONSTEND, 10}, 
+  {"@const-end", TOKCONSTEND, 10},
+  {"@const-symbol-strings", TOKCONSTSYMSTR, 21},
 };
 
 #define NUM_TYPE_QUALIFIERS 9
@@ -155,6 +156,7 @@ int tok_symbol(lbm_char_channel_t *chan) {
     r = lbm_channel_peek(chan,(unsigned int)len, &c);
   }
   if (r == CHANNEL_MORE) return TOKENIZER_NEED_MORE;
+  tokpar_sym_str[len] = 0;
   return len;
 }
 
@@ -319,14 +321,14 @@ int tok_double(lbm_char_channel_t *chan, token_float *result) {
       (!result->negative && n > 0)) valid_num = true;
 
   if (n > 127) {
-    return 0;
+    return TOKENIZER_NO_TOKEN;
   }
 
   if(valid_num) {
     result->value = (double)strtod(fbuf,NULL);
     return (int)n + type_len;
   }
-  return 0;
+  return TOKENIZER_NO_TOKEN;
 }
 
 bool tok_clean_whitespace(lbm_char_channel_t *chan) {
@@ -391,7 +393,7 @@ int tok_integer(lbm_char_channel_t *chan, token_int *result) {
   if (res == CHANNEL_MORE) {
     return TOKENIZER_NEED_MORE;
   } else if (res == CHANNEL_END) {
-    return 0;
+    return TOKENIZER_NO_TOKEN;
   }
   if (c == '-') {
     n = 1;
@@ -417,7 +419,7 @@ int tok_integer(lbm_char_channel_t *chan, token_int *result) {
     res = lbm_channel_peek(chan,n, &c);
 
     if (res == CHANNEL_MORE) return TOKENIZER_NEED_MORE;
-    else if (res == CHANNEL_END) return 0;
+    else if (res == CHANNEL_END) return TOKENIZER_NO_TOKEN;
 
     while ((c >= '0' && c <= '9') ||
            (c >= 'a' && c <= 'f') ||
@@ -449,7 +451,7 @@ int tok_integer(lbm_char_channel_t *chan, token_int *result) {
     }
   }
 
-  if (n == 0) return 0;
+  if (n == 0) return TOKENIZER_NO_TOKEN;
 
   uint32_t tok_res;
   int type_len = tok_match_fixed_size_tokens(chan, type_qual_table, n, NUM_TYPE_QUALIFIERS, &tok_res);
@@ -467,5 +469,5 @@ int tok_integer(lbm_char_channel_t *chan, token_int *result) {
     result->value = acc;
     return (int)n + type_len;
   }
-  return 0;
+  return TOKENIZER_NO_TOKEN;
 }

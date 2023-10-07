@@ -47,6 +47,12 @@
 #ifndef MCCONF_L_IN_CURRENT_MIN
 #define MCCONF_L_IN_CURRENT_MIN			-60.0	// Input current limit in Amperes (Lower)
 #endif
+#ifndef MCCONF_L_IN_CURRENT_MAP_START
+#define MCCONF_L_IN_CURRENT_MAP_START	1.0		// Input current to Q axis current limit map start
+#endif
+#ifndef MCCONF_L_IN_CURRENT_MAP_FILTER
+#define MCCONF_L_IN_CURRENT_MAP_FILTER	0.005	// Input current filter for the mapped limit
+#endif
 #ifndef MCCONF_L_MAX_ABS_CURRENT
 #define MCCONF_L_MAX_ABS_CURRENT		130.0	// The maximum absolute current above which a fault is generated
 #endif
@@ -149,6 +155,9 @@
 #endif
 #ifndef MCCONF_S_PID_RAMP_ERPMS_S
 #define MCCONF_S_PID_RAMP_ERPMS_S		25000.0	// Speed input ramping, in ERPM/s
+#endif
+#ifndef MCCONF_S_PID_SPEED_SOURCE
+#define MCCONF_S_PID_SPEED_SOURCE		S_PID_SPEED_SRC_PLL
 #endif
 
 // Position PID parameters
@@ -370,11 +379,11 @@
 #ifndef MCCONF_FOC_SL_ERPM
 #define MCCONF_FOC_SL_ERPM				3500.0	// ERPM above which only the observer is used
 #endif
-#ifndef MCCONF_FOC_SAMPLE_V0_V7
-#define MCCONF_FOC_SAMPLE_V0_V7			false	// Run control loop in both v0 and v7 (requires phase shunts)
+#ifndef MCCONF_FOC_CONTROL_SAMPLE_MODE
+#define MCCONF_FOC_CONTROL_SAMPLE_MODE	FOC_CONTROL_SAMPLE_MODE_V0
 #endif
-#ifndef MCCONF_FOC_SAMPLE_HIGH_CURRENT
-#define MCCONF_FOC_SAMPLE_HIGH_CURRENT	false	// High current sampling mode (requires three shunts)
+#ifndef MCCONF_FOC_CURRENT_SAMPLE_MODE
+#define MCCONF_FOC_CURRENT_SAMPLE_MODE	FOC_CURRENT_SAMPLE_MODE_LONGEST_ZERO
 #endif
 #ifndef MCCONF_FOC_SAT_COMP_MODE
 #define MCCONF_FOC_SAT_COMP_MODE		SAT_COMP_LAMBDA		// Stator saturation compensation mode
@@ -479,7 +488,7 @@
 #define MCCONF_FOC_FW_Q_CURRENT_FACTOR	0.02 // Factor of the FW-current to feed to the Q-axis to slow motor down when setting 0 current
 #endif
 #ifndef MCCONF_FOC_SPEED_SOURCE
-#define MCCONF_FOC_SPEED_SOURCE			SPEED_SRC_OBSERVER // Position source for speed trackers
+#define MCCONF_FOC_SPEED_SOURCE			FOC_SPEED_SRC_CORRECTED // Position source for speed trackers
 #endif
 
 // GPD

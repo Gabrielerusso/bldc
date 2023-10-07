@@ -446,6 +446,29 @@ Example of sending the numbers 1, 2, 3 and 4:
 
 ---
 
+#### recv-data
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(recv-data optTimeout)
+```
+
+Block current thread until data from VESC Tool arrives. The optional argument optTimeout can be used to specify a timeout in seconds.
+
+If a timeout occurs the symbol timeout will be returned, otherwise a byte array with the data will arrive.
+
+Usage example:
+
+```clj
+(print (recv-data))
+> [1 2 3]
+```
+
+---
+
 #### sleep
 
 | Platforms | Firmware |
@@ -615,6 +638,8 @@ Several app-inputs can be detached from the external interfaces and overridden f
 
 Detaches a peripherial from the APP ADC
 
+**Note:** Since firmware 6.05 the ADC-app will no longer reset the timeout by itself when detached. That means that the override-commands have to be sent at a rate higher than the timeout for the output to stay enabled. This is a safety feature that prevents the motor from running after the timeout time if e.g. your script crashes.
+
 ---
 
 #### app-adc-override
@@ -635,6 +660,20 @@ Detaches a peripherial from the APP ADC
 ```
 
 Sets the override value
+
+---
+
+#### app-adc-range-ok
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(app-adc-range-ok)
+```
+
+Returns true when the throttle voltage is within range and false (nil) otherwise.
 
 ---
 
@@ -1351,6 +1390,20 @@ Returns the encoder position mapped to the electrical position of the motor. Uni
 
 ---
 
+#### phase-hall
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(phase-hall)
+```
+
+Returns the hall sensor position of the motor. Unit: Degrees.
+
+---
+
 #### phase-observer
 
 | Platforms | Firmware |
@@ -1789,6 +1842,20 @@ Actively scan the CAN-bus and return a list with devices that responded. This fu
 
 ---
 
+#### can-local-id
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(can-local-id)
+```
+
+Get local CAN ID.
+
+---
+
 #### can-send-sid
 
 | Platforms | Firmware |
@@ -1823,6 +1890,47 @@ Same as (can-send-sid), but sends extended ID frame.
 
 ---
 
+#### can-recv-sid
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(can-recv-sid optTimeout)
+```
+
+Block current thread until a standard-id can-frame arrives. The optional argument optTimeout can be used to specify a timeout in seconds.
+
+If a timeout occurs the symbol timeout will be returned, otherwise a list with the following format will be returned:
+
+```clj
+(id data)
+```
+
+Usage example:
+
+```clj
+(print (can-recv-sid))
+> (2i32 [1 2 3])
+```
+
+---
+
+#### can-recv-eid
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(can-recv-eid optTimeout)
+```
+
+Same as (can-recv-sid), but waits for extended ID frame.
+
+---
+
 #### can-cmd
 
 | Platforms | Firmware |
@@ -1847,6 +1955,42 @@ Example:
 (def max-speed-kmh 25.0)
 (can-cmd 54 (str-from-n (/ max-speed-kmh 3.6) "(conf-set 'max-speed %.3f)"))
 ```
+
+---
+
+## CAN Messages
+
+---
+
+CAN messages are byte arrays of up to 500 bytes that can be sent between devices over CAN-bus. Together with flat values they are useful for e.g. remote code execution. Each CAN-device has 5 different slots to send messages to.
+
+---
+
+#### canmsg-recv
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(canmsg-recv slot timeout)
+```
+
+Wait for message on slot with timeout seconds. Returns a byte array with the received message on success or timeout if nothing is received before the timeout has passed. A negative timeout means wait forever.
+
+---
+
+#### canmsg-send
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(canmsg-send can-id slot msg)
+```
+
+Send msg over CAN-bus to slot on can-id. msg is a byte array.
 
 ---
 
@@ -2607,12 +2751,18 @@ The following selection of app and motor parameters can be read and set from Lis
 'l-min-duty             ; Minimum duty cycle
 'l-max-duty             ; Maximum duty cycle
 'l-watt-min             ; Minimum power regen in W (a negative value)
+'l-watt-max             ; Maximum power regen in W
+'l-battery-cut-start    ; The voltage where current starts to get reduced
+'l-battery-cut-end      ; The voltage below which current draw is not allowed
+'l-temp-motor-start     ; Temperature where motor current starts to get reduced
+'l-temp-motor-end       ; Temperature above which motor current is not allowed
+'l-temp-accel-dec       ; Decrease temp limits this much during acceleration
+'bms-limit-mode         ; BMS limit mode bitfield (Added in FW 6.05)
 'motor-type             ; Motor Type
                         ;    0: BLDC (6-step commutation)
                         ;    1: DC (DC motor on phase A and C)
                         ;    2: FOC (Field Oriented Control)
                         ;    3: GPD (General Purpose Drive)
-'l-watt-max             ; Maximum power regen in W
 'm-invert-direction     ; Invert motor direction, 0 or 1
 'm-out-aux-mode         ; AUX-pin output mode. Options:
                         ;    0:  OUT_AUX_MODE_OFF
@@ -2638,7 +2788,12 @@ The following selection of app and motor parameters can be read and set from Lis
                         ;    6: FOC_SENSOR_MODE_HFI_V3
                         ;    7: FOC_SENSOR_MODE_HFI_V4
                         ;    8: FOC_SENSOR_MODE_HFI_V5
+'m-ntc-motor-beta       ; Beta Value for Motor Thermistor
 'si-motor-poles         ; Number of motor poles, must be multiple of 2
+'si-gear-ratio          ; Gear ratio (Added in FW 6.05)
+'si-wheel-diameter      ; Wheel diameter in meters (Added in FW 6.05)
+'si-battery-cells       ; Number of battery cells in series (Added in FW 6.05)
+'si-battery-ah          ; Battery amp hours (Added in FW 6.05)
 'foc-current-kp         ; FOC current controller KP
 'foc-current-ki         ; FOC current controller KI
 'foc-motor-l            ; Motor inductance in microHenry
@@ -2649,7 +2804,26 @@ The following selection of app and motor parameters can be read and set from Lis
 'foc-hfi-voltage-start  ; HFI start voltage (V) (for resolving ambiguity)
 'foc-hfi-voltage-run    ; HFI voltage (V) HFI voltage at min current
 'foc-hfi-voltage-max    ; HFI voltage (V) at max current
+'foc-sl-erpm            ; Full sensorless control (Added in FW 6.05)
+'foc-sl-erpm-start      ; Start sensorless transition here (Added in FW 6.05)
+'foc-hall-t0            ; Hall table index 0 (Added in FW 6.05)
+'foc-hall-t1            ; Hall table index 1 (Added in FW 6.05)
+'foc-hall-t2            ; Hall table index 2 (Added in FW 6.05)
+'foc-hall-t3            ; Hall table index 3 (Added in FW 6.05)
+'foc-hall-t4            ; Hall table index 4 (Added in FW 6.05)
+'foc-hall-t5            ; Hall table index 5 (Added in FW 6.05)
+'foc-hall-t6            ; Hall table index 6 (Added in FW 6.05)
+'foc-hall-t7            ; Hall table index 7 (Added in FW 6.05)
 'foc-sl-erpm-hfi        ; ERPM where to move to sensorless in HFI mode
+'foc-openloop-rpm       ; Use openloop commutation below this ERPM
+'foc-openloop-rpm-low   ; Openloop ERPM and minimum current
+'foc-sl-openloop-time-lock ; Locking time at the start of openloop
+'foc-sl-openloop-time-ramp ; Time to ramp up to the openloop speed
+'foc-sl-openloop-time   ; Stay in openloop for this amount of time
+'foc-temp-comp          ; Use observer temperature compensation
+'foc-temp-comp-base-temp ; Temperature at which parameters were measured
+'foc-fw-current-max     ; Maximum field weakening current (Added in FW 6.05)
+'foc-fw-duty-start      ; Duty where field weakening starts (Added in FW 6.05)
 'min-speed              ; Minimum speed in meters per second (a negative value)
 'max-speed              ; Maximum speed in meters per second
 'app-to-use             ; App to use
@@ -2662,9 +2836,8 @@ The following selection of app and motor parameters can be read and set from Lis
                         ;    6: APP_NUNCHUK
                         ;    7: APP_NRF
                         ;    8: APP_CUSTOM
-                        ;    9: APP_BALANCE
-                        ;    10: APP_PAS
-                        ;    11: APP_ADC_PAS
+                        ;    9: APP_PAS
+                        ;    10: APP_ADC_PAS
 'controller-id          ; VESC CAN ID
 'ppm-ctrl-type          ; PPM Control Type
                         ;    0:  PPM_CTRL_TYPE_NONE
@@ -2700,6 +2873,13 @@ The following selection of app and motor parameters can be read and set from Lis
                         ;    12: ADC_CTRL_TYPE_PID
                         ;    13: ADC_CTRL_TYPE_PID_REV_CENTER
                         ;    14: ADC_CTRL_TYPE_PID_REV_BUTTON
+'adc-ramp-time-pos      ; Positive ramping time in seconds (Added in FW 6.05)
+'adc-ramp-time-neg      ; Negative ramping time in seconds (Added in FW 6.05)
+'adc-thr-hyst           ; Throttle hysteresis, range 0 to 1 (Added in FW 6.05)
+'adc-v1-start           ; Throttle 1 start voltage (Added in FW 6.05)
+'adc-v1-end             ; Throttle 1 end voltage (Added in FW 6.05)
+'adc-v1-min             ; Throttle 1 low fault voltage (Added in FW 6.05)
+'adc-v1-max             ; Throttle 1 high fault voltage (Added in FW 6.05)
 'pas-current-scaling    ; PAS current scaling (Added in FW 6.05)
 ```
 
@@ -2849,6 +3029,48 @@ returns: ({ld_lq_avg} {ld_lq_diff} {actual_measurement_current} fault-code)
 Can not be used when the motor is running. The measurement current is not gaurenteed to reach the target, and the actual_measurement_current parameter should be used to verify the actual current used.
 
 Useful for finding the saturation inductance curve of a motor.
+
+---
+
+#### conf-restore-mc
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(conf-restore-mc)
+```
+
+Restore motor configuration to the default values on the selected motor. The current and voltage offsets are kept from the old configuration.
+
+---
+
+#### conf-restore-app
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(conf-restore-app)
+```
+
+Restore app configuration to the default values.
+
+---
+
+#### conf-dc-cal
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(conf-dc-cal calUndriven)
+```
+
+Run FOC DC offset calibration. calUndriven can be set to true for including the undriven voltages in the calibration, which requires that the motor stands still.
 
 ---
 
@@ -3057,6 +3279,38 @@ f
         (sleep 0.5)
 ))
 
+```
+
+---
+
+#### loopwhile-thd
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(loopwhile-thd stack cond body)
+```
+
+While-loop that starts in a new thread. The argument stack is the stack-size of the thread, cond is the condition that has the be true for the loop to continue running and body is the code to execute each iteration. The difference from the regular loopwhile is that the evaluator will continue running the code after this one before this one finishes, as this loop is evaluated in a new thread.
+
+Example that forever prints "Hello World" every two seconds:
+
+```clj
+; Note: This example uses the curly backet for progn for convenience
+
+(loopwhile-thd 100 t {
+        (print "Hello World")
+        (sleep 2)
+})
+
+; The above is equivalent to the following code
+
+(spawn 100 (fn () (loopwhile t {
+                (print "Hello World")
+                (sleep 2)
+})))
 ```
 
 ---
@@ -3910,6 +4164,23 @@ Strings in lispBM are treated the same as byte arrays, so all of the above can b
 
 ---
 
+#### buf-find
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(buf-find arr seq optOccurence)
+```
+
+Find position of seq in array arr. The optional argument optOccurence specifies which occurrence of seq to look for - if it is set to 0 or left out the position of the first occurrence will be returned. If seq is not found -1 will be returned.
+
+**NOTE**  
+The last byte in seq will be ignored as that is the null-terminator if seq is a string (which is the most common use case). If the match should be done on the last byte too seq can be padded with a dummy-byte.
+
+---
+
 ## Import Files
 
 Import is a special command that is mostly handled by VESC Tool. When VESC Tool sees a line that imports a file it will open and read that file and attach it as binary data to the end of the uploaded code. VESC Tool also generates a table of the imported files that will be allocated as arrays and passed to LispBM at start and bound to bindings.
@@ -4120,6 +4391,20 @@ Same as uavcan-last-rawcmd, but for the last rpm-command.
 Set how many evaluation steps to run each thread between context switches. Default is 50. A lower value will alter between threads more often, reducing latency between context switches at the cost of overall performance. The default value of 50 has relatively low performance overhead. Setting the quota to the lowest possible value of 1, meaning that each thread gets to run one step at a time, roughly halves the performance.
 
 Lowering this value is useful if there are one or more timing-critical threads (that e.g. read encoders) that cannot wait too long between iterations.
+
+---
+
+#### lbm-set-gc-stack-size
+
+| Platforms | Firmware |
+|---|---|
+| ESC, Express | 6.05+ |
+
+```clj
+(lbm-set-gc-stack-size new-size)
+```
+
+Change the stack size for the garbage collector. If the GC stack is too small the program can crash during garbage collection and print a message stating that it ran out of GC stack. If that happens increasing the size from the default of 160 can help. Note that the GC stack is on LBM memory and increasing its size leaves less memory available for other things.
 
 ---
 
@@ -4592,6 +4877,34 @@ Example:
 
 ---
 
+#### esp-now-recv
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(esp-now-recv optTimeout)
+```
+
+Block current thread until esp-now data arrives. The optional argument optTimeout can be used to specify a timeout in seconds.
+
+If a timeout occurs the symbol timeout will be returned, otherwise a list with the following format will be returned:
+
+```clj
+(src-mac-addr dest-mac-addr payload-array rssi-db)
+```
+
+Usage example:
+
+```clj
+(esp-now-start)
+(print (esp-now-recv))
+> ((112 4 29 15 194 105) (16 145 168 52 203 121) "Test" -40)
+```
+
+---
+
 #### get-mac-addr
 
 | Platforms | Firmware |
@@ -4677,19 +4990,211 @@ Events can be used to receive ESP-NOW data. This is best described with an examp
 ; the broadcast address (255 255 255 255 255 255) it means that this
 ; was a broadcast packet.
 
-(defun proc-data (src des data)
-    (print (list src des data))
+(defun proc-data (src des data rssi)
+    (print (list src des data rssi))
 )
 
 (defun event-handler ()
     (loopwhile t
         (recv
-            ((event-esp-now-rx (? src) (? des) (? data)) (proc-data src des data))
+            ((event-esp-now-rx (? src) (? des) (? data) (? rssi)) (proc-data src des data rssi))
             (_ nil)
 )))
 
 (event-register-handler (spawn event-handler))
 (event-enable 'event-esp-now-rx)
+```
+
+NOTE: The RSSI was added in firmware 6.05 and should be left out in earlier firmwares.
+
+---
+
+## File System (SD Card)
+
+When a SD-card is present in the VESC Express files can be listed, read, written and removed. Directories can also be created and removed.
+
+---
+
+#### f-open
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-open path mode)
+```
+
+Open a file in open-mode mode (r, w or rw). Returns a number that can be used as a handle to the file on success or nil if the file could not be opened. Example:
+
+```clj
+(def f (f-open "test.txt" "w")) ; Open test.txt in write-only mode and store the handle as f.
+```
+
+---
+
+#### f-close
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-close file)
+```
+
+Close file. The argument file is the handle returned by f-open.
+
+---
+
+#### f-read
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-read file size)
+```
+
+Read up to size bytes from file. Returns an array with the read data. Successive calls to f-read will move the file position forwards. If the returned array is smaller than the size-argument it means that the end of the file was reached. When calling read after reaching the end if the file nil is returned.
+
+---
+
+#### f-readline
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-readline file maxlen)
+```
+
+Read one line from file. At most maxlen bytes will be read. If maxlen is set too high this function will fail as it needs to pre-allocate enough memory to fit maxlen. This function advances the file position, so successive calls to it can be used to read the file line-by-line. When the end of the file is reached nil is returned.
+
+---
+
+#### f-write
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-write file buf)
+```
+
+Write array buf to file. This will advance the file position by the size of buf. 
+
+---
+
+#### f-tell
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-tell file)
+```
+
+Get the current position in the file.
+
+---
+
+#### f-seek
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-seek file pos)
+```
+
+Seek to position pos in file. If pos is a negative number the seek is done from the end of the file.
+
+---
+
+#### f-mkdir
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-mkdir path)
+```
+
+Make directory on path.
+
+---
+
+#### f-rm
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-rm path)
+```
+
+Remove path recursively. If path is a file just the file is removed and if it is a directory that directory and all its content will be removed recursively.
+
+---
+
+#### f-ls
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-ls path)
+```
+
+List all files and directories in path. Returns a list with the entries; each entry is a list where the first element is the name, the second element is true for directories and nil for files and the third element is the size. For directories the size says how many entries that directory has and for files it says what size the file has in bytes.
+
+Example:
+
+```clj
+(f-ls "")
+> ("testsize.bin" nil 100) ("test.txt" nil 7) ("old_logs" t 47))
+```
+
+---
+
+#### f-size
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-size file)
+```
+
+Get the size of a file in bytes. File can be a path (e.g. "test.txt") or a file pointer opened with f-open.
+
+---
+
+#### f-fatinfo
+
+| Platforms | Firmware |
+|---|---|
+| Express | 6.05+ |
+
+```clj
+(f-fatinfo)
+```
+
+Returns a list where the first element is the free space on the file system and the second element is the total size of the file system. Unit: MB. Example:
+
+```clj
+(f-fatinfo)
+> (30298 30417)
 ```
 
 ---

@@ -21,6 +21,7 @@
 #include <extensions.h>
 #include <lbm_utils.h>
 #include <lbm_version.h>
+#include <env.h>
 
 static lbm_uint sym_heap_size;
 static lbm_uint sym_heap_bytes;
@@ -32,9 +33,6 @@ static lbm_uint sym_num_gc_recovered_cells;
 static lbm_uint sym_num_gc_recovered_arrays;
 static lbm_uint sym_num_least_free;
 static lbm_uint sym_num_last_free;
-static lbm_uint sym_gc_time_acc;
-static lbm_uint sym_gc_time_min;
-static lbm_uint sym_gc_time_max;
 
 lbm_value ext_eval_set_quota(lbm_value *args, lbm_uint argn) {
   LBM_CHECK_ARGN_NUMBER(1);
@@ -110,12 +108,6 @@ lbm_value ext_lbm_heap_state(lbm_value *args, lbm_uint argn) {
       res = lbm_enc_u(hs.gc_least_free);
     } else if (s == sym_num_last_free) {
       res = lbm_enc_u(hs.gc_last_free);
-    } else if (s == sym_gc_time_acc) {
-      res = lbm_enc_u(hs.gc_time_acc);
-    } else if (s == sym_gc_time_min) {
-      res = lbm_enc_u(hs.gc_min_duration);
-    } else if (s == sym_gc_time_max) {
-      res = lbm_enc_u(hs.gc_max_duration);
     } else {
       res = ENC_SYM_NIL;
     }
@@ -123,6 +115,39 @@ lbm_value ext_lbm_heap_state(lbm_value *args, lbm_uint argn) {
   return res;
 }
 
+lbm_value ext_env_get(lbm_value *args, lbm_uint argn) {
+  (void)args;
+  (void)argn;
+  return lbm_get_env();
+}
+
+lbm_value ext_env_set(lbm_value *args, lbm_uint argn) {
+  if (argn == 1) {
+    *lbm_get_env_ptr() = args[0];
+    return ENC_SYM_TRUE;
+  }
+  return ENC_SYM_NIL;
+}
+
+lbm_value ext_set_gc_stack_size(lbm_value *args, lbm_uint argn) {
+  if (argn == 1) {
+    if (lbm_is_number(args[0])) {
+      uint32_t n = lbm_dec_as_u32(args[0]);
+      lbm_uint *new_stack = lbm_malloc(n * sizeof(lbm_uint));
+      if (new_stack) {
+        lbm_free(lbm_heap_state.gc_stack.data);
+        lbm_heap_state.gc_stack.data = new_stack;
+        lbm_heap_state.gc_stack.size = n;
+        lbm_heap_state.gc_stack.max_sp = 0;
+        lbm_heap_state.gc_stack.sp = 0;  // should already be 0
+        return ENC_SYM_TRUE;
+      }
+      return ENC_SYM_MERROR;
+    }
+  }
+  return ENC_SYM_TERROR;
+}
+ 
 bool lbm_runtime_extensions_init(bool minimal) {
 
   if (!minimal) {
@@ -136,9 +161,6 @@ bool lbm_runtime_extensions_init(bool minimal) {
     lbm_add_symbol_const("get-gc-num-recovered-arrays", &sym_num_gc_recovered_arrays);
     lbm_add_symbol_const("get-gc-num-least-free", &sym_num_least_free);
     lbm_add_symbol_const("get-gc-num-last-free", &sym_num_last_free);
-    lbm_add_symbol_const("get-gc-time-acc", &sym_gc_time_acc);
-    lbm_add_symbol_const("get-gc-min-dur", &sym_gc_time_min);
-    lbm_add_symbol_const("get-gc-max-dur", &sym_gc_time_max);
   }
 
   bool res = true;
@@ -152,6 +174,9 @@ bool lbm_runtime_extensions_init(bool minimal) {
     res = res && lbm_add_extension("word-size", ext_memory_word_size);
     res = res && lbm_add_extension("lbm-version", ext_lbm_version);
     res = res && lbm_add_extension("lbm-heap-state", ext_lbm_heap_state);
+    res = res && lbm_add_extension("env-get", ext_env_get);
+    res = res && lbm_add_extension("env-set", ext_env_set);
+    res = res && lbm_add_extension("set-gc-stack-size", ext_set_gc_stack_size);
   }
   return res;
 }

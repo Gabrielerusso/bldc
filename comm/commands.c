@@ -28,7 +28,6 @@
 #include "hw.h"
 #include "mcpwm.h"
 #include "mcpwm_foc.h"
-#include "mc_interface.h"
 #include "app.h"
 #include "timeout.h"
 #include "servo_dec.h"
@@ -212,7 +211,9 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 			packet_id == COMM_EXT_NRF_ESB_RX_DATA) {
 		send_func_nrf = reply_func;
 	} else {
-		send_func = reply_func;
+		if (packet_id != COMM_LISP_RMSG) {
+			send_func = reply_func;
+		}
 	}
 
 	// Avoid calling invalid function pointer if it is null.
@@ -541,7 +542,7 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 			utils_truncate_number(&mcconf->l_current_max_scale , 0.0, 1.0);
 			utils_truncate_number(&mcconf->l_current_min_scale , 0.0, 1.0);
 
-#ifdef HW_HAS_DUAL_MOTORS
+#if defined(HW_HAS_DUAL_MOTORS) & !defined(HW_SET_SINGLE_MOTOR)
 			mcconf->motor_type = MOTOR_TYPE_FOC;
 #endif
 
@@ -549,8 +550,6 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 			mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
 			mcconf->lo_in_current_max = mcconf->l_in_current_max;
 			mcconf->lo_in_current_min = mcconf->l_in_current_min;
-			mcconf->lo_current_motor_max_now = mcconf->lo_current_max;
-			mcconf->lo_current_motor_min_now = mcconf->lo_current_min;
 
 			commands_apply_mcconf_hw_limits(mcconf);
 			conf_general_store_mc_configuration(mcconf, mc_interface_get_motor_thread() == 2);
@@ -706,24 +705,6 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 		uint8_t send_buffer[50];
 		send_buffer[ind++] = COMM_GET_DECODED_CHUK;
 		buffer_append_int32(send_buffer, (int32_t)(app_nunchuk_get_decoded_y() * 1000000.0), &ind);
-		reply_func(send_buffer, ind);
-	} break;
-
-	case COMM_GET_DECODED_BALANCE: {
-		int32_t ind = 0;
-		uint8_t send_buffer[50];
-		send_buffer[ind++] = COMM_GET_DECODED_BALANCE;
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_pid_output() * 1000000.0), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_pitch_angle() * 1000000.0), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_roll_angle() * 1000000.0), &ind);
-		buffer_append_uint32(send_buffer, app_balance_get_diff_time(), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_motor_current() * 1000000.0), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_debug1() * 1000000.0), &ind);
-		buffer_append_uint16(send_buffer, app_balance_get_state(), &ind);
-		buffer_append_uint16(send_buffer, app_balance_get_switch_state(), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_adc1() * 1000000.0), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_adc2() * 1000000.0), &ind);
-		buffer_append_int32(send_buffer, (int32_t)(app_balance_get_debug2() * 1000000.0), &ind);
 		reply_func(send_buffer, ind);
 	} break;
 
@@ -1010,8 +991,6 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 
 		mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
 		mcconf->lo_current_max = mcconf->l_current_max * mcconf->l_current_max_scale;
-		mcconf->lo_current_motor_min_now = mcconf->lo_current_min;
-		mcconf->lo_current_motor_max_now = mcconf->lo_current_max;
 		mcconf->lo_in_current_min = mcconf->l_in_current_min;
 		mcconf->lo_in_current_max = mcconf->l_in_current_max;
 
@@ -1629,7 +1608,8 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 	case COMM_LISP_SET_RUNNING:
 	case COMM_LISP_GET_STATS:
 	case COMM_LISP_REPL_CMD:
-	case COMM_LISP_STREAM_CODE: {
+	case COMM_LISP_STREAM_CODE:
+	case COMM_LISP_RMSG: {
 #ifdef USE_LISPBM
 		lispif_process_cmd(data - 1, len + 1, reply_func);
 #endif
@@ -1851,7 +1831,7 @@ void commands_apply_mcconf_hw_limits(mc_configuration *mcconf) {
 	// This limit should always be active, as starving the threads never
 	// makes sense.
 #ifdef HW_LIM_FOC_CTRL_LOOP_FREQ
-    if (mcconf->foc_sample_v0_v7 == true) {
+    if (mcconf->foc_control_sample_mode == FOC_CONTROL_SAMPLE_MODE_V0_V7) {
     	//control loop executes twice per pwm cycle when sampling in v0 and v7
 		utils_truncate_number(&mcconf->foc_f_zv, HW_LIM_FOC_CTRL_LOOP_FREQ);
 		ctrl_loop_freq = mcconf->foc_f_zv;

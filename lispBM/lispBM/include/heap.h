@@ -256,10 +256,6 @@ typedef struct {
   lbm_uint gc_least_free;      // The smallest length of the freelist.
   lbm_uint gc_last_free;       // Number of elements on the freelist
                                // after most recent GC.
-
-  lbm_uint gc_time_acc;
-  lbm_uint gc_min_duration;
-  lbm_uint gc_max_duration;
 } lbm_heap_state_t;
 
 extern lbm_heap_state_t lbm_heap_state;
@@ -285,12 +281,11 @@ typedef struct {
 /** Initialize heap storage.
  * \param addr Pointer to an array of lbm_cons_t elements. This array must at least be aligned 4.
  * \param num_cells Number of lbm_cons_t elements in the array.
- * \param gc_stack_storage uint32_t pointer to space to use as "recursion" stack for GC
  * \param gc_stack_size Size of the gc_stack in number of words.
  * \return 1 on success or 0 for failure.
  */
 int lbm_heap_init(lbm_cons_t *addr, lbm_uint num_cells,
-                         lbm_uint *gc_stack_storage, lbm_uint gc_stack_size);
+                  lbm_uint gc_stack_size);
 
 /** Add GC time statistics to heap_stats
  *
@@ -325,14 +320,16 @@ lbm_uint lbm_heap_size_bytes(void);
 /** Allocate an lbm_cons_t cell from the heap.
  *
  * \param type A type that can be encoded onto the cell (most often LBM_PTR_TYPE_CONS).
+ * \param car Value to write into car position of allocated cell.
+ * \param cdr Value to write into cdr position of allocated cell.
  * \return An lbm_value referring to a cons_cell or enc_sym(SYM_MERROR) in case the heap is full.
  */
-lbm_value lbm_heap_allocate_cell(lbm_type type);
+lbm_value lbm_heap_allocate_cell(lbm_type type, lbm_value car, lbm_value cdr);
 /** Allocate a list of n heap-cells.
  * \param n The number of heap-cells to allocate.
  * \return A list of heap-cells of Memory error if unable to allocate.
  */
-lbm_value lbm_heap_allocate_list(unsigned int n);
+lbm_value lbm_heap_allocate_list(lbm_uint n);
 /** Allocate a list of n heap-cells and initialize the values.
  * \pram ls The result list is passed through this ptr.
  * \param n The length of list to allocate.
@@ -427,7 +424,7 @@ lbm_value lbm_car(lbm_value cons);
 /** Accesses the car field the car field of an lbm_cons_t.
  *
  * \param cons Value
- * \return The car of car field or nil. 
+ * \return The car of car field or nil.
  */
 lbm_value lbm_caar(lbm_value c);
 /** Accesses the car of the cdr of an cons cell
@@ -482,7 +479,7 @@ int lbm_set_car_and_cdr(lbm_value c, lbm_value car_val, lbm_value cdr_val);
  * \param c A list
  * \return The length of the list. Unless the value is a cyclic structure on the heap, this function will terminate.
  */
-unsigned int lbm_list_length(lbm_value c);
+lbm_uint lbm_list_length(lbm_value c);
 
 /** Calculate the length of a proper list and evaluate a predicate for each element.
  * \warning This is a dangerous function that should be used carefully. Cyclic structures on the heap
@@ -513,10 +510,11 @@ lbm_value lbm_list_destructive_reverse(lbm_value list);
  * \warning This is a dangerous function that should be used carefully. Cyclic structures on the heap
  * may lead to the function not terminating.
  *
+ * \param m Number of elements to copy or -1 for all.
  * \param list A list.
  * \return Reversed list or enc_sym(SYM_MERROR) if heap is full.
  */
-lbm_value lbm_list_copy(lbm_value list);
+lbm_value lbm_list_copy(int m, lbm_value list);
 
 /** A destructive append of two lists
  *
@@ -526,6 +524,12 @@ lbm_value lbm_list_copy(lbm_value list);
  */
 lbm_value lbm_list_append(lbm_value list1, lbm_value list2);
 
+/** Drop values from the head of a list.
+ * \param n Number of values to drop.
+ * \param ls List to drop values from.
+ * \return The list with the n first elements removed.
+ */
+lbm_value lbm_list_drop(unsigned int n, lbm_value ls);
 
 // State and statistics
 /** Get a copy of the heap statistics structure.
@@ -534,7 +538,10 @@ lbm_value lbm_list_append(lbm_value list1, lbm_value list2);
  * with the current statistics.
  */
 void lbm_get_heap_state(lbm_heap_state_t *);
-
+/** Get the maximum stack level of the GC stack
+ * \return maximum value the gc stack sp reached so far.
+ */
+lbm_uint lbm_get_gc_stack_max(void);
 // Garbage collection
 /** Increment the counter that is counting the number of times GC ran
  *
@@ -551,12 +558,9 @@ void lbm_nil_freelist(void);
 int lbm_gc_mark_freelist(void);
 /** Mark heap cells reachable from the lbm_value v.
  *
- * \param m Number of Root nodes to start marking from.
- * \param ... list of root nodes.
  * \return 1 on success and 0 if the stack used internally is full.
  */
-//int lbm_gc_mark_phase(lbm_value v);
-int lbm_gc_mark_phase(int num, ... );
+int lbm_gc_mark_phase(void);
 /** Performs lbm_gc_mark_phase on all the values of an array.
  *
  * \param data Array of roots to traverse from.
@@ -589,6 +593,16 @@ int lbm_heap_allocate_array(lbm_value *res, lbm_uint size);
  * \return 1 for success and 0 for failure.
  */
 int lbm_lift_array(lbm_value *value, char *data, lbm_uint num_elt);
+/** Get the size of an array value.
+ * \param arr lbm_value array to get size of.
+ * \return -1 for failure or length of array.
+ */
+lbm_int lbm_heap_array_get_size(lbm_value arr);
+/** Get a pointer to the data of an array.
+ * \param arr lbm_value array to get pointer from.
+ * \return NULL or valid pointer.
+ */
+uint8_t *lbm_heap_array_get_data(lbm_value arr);
 /** Explicitly free an array.
  *  This function needs to be used with care and knowledge.
  * \param arr Array value.
@@ -826,7 +840,7 @@ static inline bool lbm_is_macro(lbm_value exp) {
 }
 
 static inline bool lbm_is_match_binder(lbm_value exp) {
-  return ((lbm_type_of(exp) == LBM_TYPE_CONS) &&
+  return (lbm_is_cons(exp) &&
           (lbm_type_of(lbm_car(exp)) == LBM_TYPE_SYMBOL) &&
           ((lbm_dec_sym(lbm_car(exp)) == SYM_MATCH_ANY)));
 }
@@ -875,9 +889,9 @@ static inline bool lbm_is_quoted_list(lbm_value x) {
 }
 
 #ifndef LBM64
-#define ERROR_SYMBOL_MASK 0xFFFFFF20
+#define ERROR_SYMBOL_MASK 0xFFFFFFF0
 #else
-#define ERROR_SYMBOL_MASK 0xFFFFFFFFFFFFFF20
+#define ERROR_SYMBOL_MASK 0xFFFFFFFFFFFFFFF0
 #endif
 
 /* all error signaling symbols are in the range 0x20 - 0x2F */

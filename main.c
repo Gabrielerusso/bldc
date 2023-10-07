@@ -187,6 +187,10 @@ static THD_FUNCTION(periodic_thread, arg) {
 				commands_send_rotor_pos(utils_angle_difference(mcpwm_foc_get_phase_observer(), mcpwm_foc_get_phase_encoder()));
 				break;
 
+			case DISP_POS_MODE_HALL_OBSERVER_ERROR:
+				commands_send_rotor_pos(utils_angle_difference(mcpwm_foc_get_phase_observer(), mcpwm_foc_get_phase_hall()));
+				break;
+
 			default:
 				break;
 			}
@@ -259,16 +263,17 @@ int main(void) {
 	comm_usb_init();
 #endif
 
-#if CAN_ENABLE
-	comm_can_init();
-#endif
-
 	app_uartcomm_initialize();
 	app_configuration *appconf = mempools_alloc_appconf();
 	conf_general_read_app_configuration(appconf);
 	app_set_configuration(appconf);
 	app_uartcomm_start(UART_PORT_BUILTIN);
 	app_uartcomm_start(UART_PORT_EXTRA_HEADER);
+
+	// This reads the appconf, that must be initialized first.
+#if CAN_ENABLE
+	comm_can_init();
+#endif
 
 #ifdef HW_HAS_PERMANENT_NRF
 	conf_general_permanent_nrf_found = nrf_driver_init();

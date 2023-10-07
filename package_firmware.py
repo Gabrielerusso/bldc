@@ -57,14 +57,18 @@ package_dict["A50S_6S_HG"] = [['a50s_v22_6s_hg', default_name]]
 package_dict["A50S_12S"] = [['a50s_v22_12s', default_name]]
 package_dict["A50S_12S_HG"] = [['a50s_v22_12s_hg', default_name]]
 package_dict["A50S_V23_6S"] = [['a50s_v23_6s', default_name]]
+package_dict["A50S_V23_8S"] = [['a50s_v23_8s', default_name]]
 package_dict["A50S_V23_12S"] = [['a50s_v23_12s', default_name]]
 package_dict["A50S_V23_20S"] = [['a50s_v23_20s', default_name]]
 package_dict["A200S_V2.1"] = [['a200s_v2.1', default_name]]
 package_dict["A200S_V2.2"] = [['a200s_v2.2', default_name]]
 package_dict["A200S_V3"] = [['a200s_v3', default_name]]
 package_dict["A200S_V4"] = [['a200s_v4', default_name]]
+package_dict["A200S_V41"] = [['a200s_v41', default_name]]
 package_dict["100_250"] = [['100_250', default_name],
                     ['100_250_no_limits', no_limits_name]]
+package_dict["100_250_MKIII"] = [['100_250_mkiii', default_name],
+                    ['100_250_mkiii_no_limits', no_limits_name]]
 package_dict["LUNA_BBSHD"] = [['luna_bbshd', default_name]]
 package_dict["LUNA_M600"] = [['luna_m600', default_name]]
 package_dict["LUNA_M600_V2"] = [['luna_m600', default_name]]
@@ -120,6 +124,8 @@ package_dict["UBOX_SINGLE_100"] = [['ubox_single_100', default_name],
                                    ['ubox_single_100_no_limits', no_limits_name]]
 package_dict["UBOX_SINGLE_80"] = [['ubox_single_80', default_name],
                                   ['ubox_single_80_no_limits', no_limits_name]]
+package_dict["UBOX_SINGLE_85_200"] = [['ubox_single_85_200', 'default_name.bin'],
+                                  ['ubox_single_85_200_no_limits', 'no_limits_name']]
 package_dict["UBOX_V2_100"] = [['ubox_v2_100', default_name],
                                ['ubox_v2_100_no_limits', no_limits_name]]
 package_dict["EDU"] = [['edu', default_name],

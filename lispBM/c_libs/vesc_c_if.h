@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+
 #ifdef IS_VESC_LIB
 typedef uint32_t systime_t;
 

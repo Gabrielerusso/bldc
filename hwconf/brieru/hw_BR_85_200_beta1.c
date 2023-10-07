@@ -257,8 +257,8 @@ void hw_try_restore_i2c(void) {
 }
 
 float briesc_get_temp(void) {
-	float t1 = (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3380.0) + (1.0 / 298.15)) - 273.15);
-	float t2 = (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3380.0) + (1.0 / 298.15)) - 273.15);
+	float t1 = NTC_TEMP_MOS1();
+	float t2 = NTC_TEMP_MOS2();
 
 	if(t1 > t2){
 		return t1;

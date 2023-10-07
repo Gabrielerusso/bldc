@@ -552,7 +552,7 @@
 #define MCCONF_M_DC_F_SW				25000 // Switching frequency in dc mode
 #endif
 #ifndef MCCONF_M_NTC_MOTOR_BETA
-#define MCCONF_M_NTC_MOTOR_BETA			3380.0 // Beta value for motor termistor
+#define MCCONF_M_NTC_MOTOR_BETA			3435.0 // Beta value for motor termistor
 #endif
 #ifndef MCCONF_M_OUT_AUX_MODE
 #define MCCONF_M_OUT_AUX_MODE			OUT_AUX_MODE_OFF // Auxiliary output mode

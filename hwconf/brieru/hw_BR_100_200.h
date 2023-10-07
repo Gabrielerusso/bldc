@@ -124,10 +124,10 @@
 
 // Component parameters (can be overridden)
 #ifndef V_REG
-#define V_REG					3.26
+#define V_REG					3.30
 #endif
 #ifndef VIN_R1
-#define VIN_R1					60400.0
+#define VIN_R1					64000.0
 #endif
 #ifndef VIN_R2
 #define VIN_R2					2200.0
@@ -148,13 +148,10 @@
 
 #define NTC_RES_MOTOR(adc_val)	(10000.0 / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
 
-#define NTC_TEMP_MOTOR(beta)	(1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000.0) / beta) + (1.0 / 298.15)) - 273.15)
+#define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000.0) / beta) + (1.0 / 298.15)) - 273.15)
 
-
-
-#define NTC_TEMP_MOS1()			(1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3380.0) + (1.0 / 298.15)) - 273.15)
-#define NTC_TEMP_MOS2()			(1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3380.0) + (1.0 / 298.15)) - 273.15)
-
+#define NTC_TEMP_MOS1()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
+#define NTC_TEMP_MOS2()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
 
 // Voltage on ADC channel
 #define ADC_VOLTS(ch)			((float)ADC_Value[ch] / 4096.0 * V_REG)
@@ -257,31 +254,43 @@
 // Override dead time. See the stm32f4 reference manual for calculating this value.
 #define HW_DEAD_TIME_NSEC		1000.0
 
+// Default motor setting overrides
 // Default setting overrides
-#ifndef MCCONF_L_MIN_VOLTAGE
-#define MCCONF_L_MIN_VOLTAGE			13.0		// Minimum input voltage
-#endif
-#ifndef MCCONF_L_MAX_VOLTAGE
+#define MCCONF_L_MIN_VOLTAGE			13.0	// Minimum input voltage
 #define MCCONF_L_MAX_VOLTAGE			86.0	// Maximum input voltage
-#endif
-#ifndef MCCONF_DEFAULT_MOTOR_TYPE
 #define MCCONF_DEFAULT_MOTOR_TYPE		MOTOR_TYPE_FOC
-#endif
-#ifndef MCCONF_FOC_F_ZV
 #define MCCONF_FOC_F_ZV					28000.0
-#endif
-#ifndef MCCONF_L_MAX_ABS_CURRENT
-#define MCCONF_L_MAX_ABS_CURRENT		250.0	// The maximum absolute current above which a fault is generated
-#endif
-#ifndef MCCONF_FOC_SAMPLE_V0_V7
+#define MCCONF_L_MAX_ABS_CURRENT		300.0	// The maximum absolute current above which a fault is generated
 #define MCCONF_FOC_SAMPLE_V0_V7			false	// Run control loop in both v0 and v7 (requires phase shunts)
-#endif
-#ifndef MCCONF_L_IN_CURRENT_MAX
 #define MCCONF_L_IN_CURRENT_MAX			90.0	// Input current limit in Amperes (Upper)
-#endif
-#ifndef MCCONF_L_IN_CURRENT_MIN
 #define MCCONF_L_IN_CURRENT_MIN			-20.0	// Input current limit in Amperes (Lower)
-#endif
+#define MCCONF_FOC_CURRENT_FILTER_CONST	0.5		// Filter constant for the filtered currents
+#define MCCONF_FOC_TEMP_COMP			true	// Motor temperature compensation
+#define MCCONF_FOC_TEMP_COMP_BASE_TEMP	25.0	// Motor temperature compensation base temperature
+#define MCCONF_M_NTC_MOTOR_BETA			3435.0 // Beta value for motor termistor
+#define MCCONF_L_LIM_TEMP_FET_START     70      // MOSFET Temp Cutoff Start
+#define MCCONF_L_LIM_TEMP_FET_END       85      // MOSFET Temp Cutoff End
+#define MCCONF_FOC_SAT_COMP_MODE		SAT_COMP_DISABLED		// Stator saturation compensation mode
+#define MCCONF_FOC_CC_DECOUPLING		FOC_CC_DECOUPLING_DISABLED // Current controller decoupling
+#define MCCONF_FOC_OBSERVER_TYPE		FOC_OBSERVER_ORTEGA_ORIGINAL // Position observer type for FOC
+#define MCCONF_M_HALL_EXTRA_SAMPLES		2 // Extra samples for filtering when reading hall sensors
+#define MCCONF_SI_MOTOR_POLES			30 // Motor pole count
+#define MCCONF_SI_GEAR_RATIO			1 // Gear ratio
+#define MCCONF_SI_WHEEL_DIAMETER		0.270 // Wheel Diameter
+#define MCCONF_BMS_TYPE					BMS_TYPE_NONE
+
+// APP OVERRIDE
+#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_10M
+#define APPCONF_CAN_STATUS_RATE_1			100
+#define APPCONF_CAN_STATUS_RATE_2			10
+#define APPCONF_ADC_HYST					0.05
+#define APPCONF_ADC_VOLTAGE_MIN				0.2
+#define APPCONF_ADC_VOLTAGE_MAX				3.4
+#define APPCONF_ADC_TC_MAX_DIFF				4000.0
+#define APPCONF_ADC_UPDATE_RATE_HZ			100
+#define APPCONF_PPM_THROTTLE_EXP			-0.25
+#define APPCONF_PPM_THROTTLE_EXP_BRAKE		-0.25
+#define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
 #define HW_LIM_CURRENT			-450.0, 450.0

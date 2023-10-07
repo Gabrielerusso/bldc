@@ -63,6 +63,7 @@ void hw_init_gpio(void) {
 			PAL_STM32_OSPEED_HIGHEST |
 			PAL_STM32_PUDR_FLOATING);
 
+	// GPIOB
 	palSetPadMode(GPIOB, 13, PAL_MODE_ALTERNATE(GPIO_AF_TIM1) |
 			PAL_STM32_OSPEED_HIGHEST |
 			PAL_STM32_PUDR_FLOATING);
@@ -72,6 +73,9 @@ void hw_init_gpio(void) {
 	palSetPadMode(GPIOB, 15, PAL_MODE_ALTERNATE(GPIO_AF_TIM1) |
 			PAL_STM32_OSPEED_HIGHEST |
 			PAL_STM32_PUDR_FLOATING);
+	
+	//SHUTDOWN INPUT PIN
+	palSetPadMode(HW_SHUTDOWN_IN_GPIO, HW_SHUTDOWN_IN_PIN, PAL_MODE_INPUT);
 
 	// Hall sensors
 	palSetPadMode(HW_HALL_ENC_GPIO1, HW_HALL_ENC_PIN1, PAL_MODE_INPUT_PULLUP);
@@ -96,6 +100,12 @@ void hw_init_gpio(void) {
 	// AUX pin
 	AUX_OFF();
 	palSetPadMode(AUX_GPIO, AUX_PIN,
+			PAL_MODE_OUTPUT_PUSHPULL |
+			PAL_STM32_OSPEED_HIGHEST);
+
+	// AUX2 pin
+	AUX2_OFF();
+	palSetPadMode(AUX2_GPIO, AUX2_PIN,
 			PAL_MODE_OUTPUT_PUSHPULL |
 			PAL_STM32_OSPEED_HIGHEST);
 
@@ -271,4 +281,10 @@ static void terminal_shutdown_now(int argc, const char **argv) {
 	(void)argv;
 	DISABLE_GATE();
 	HW_SHUTDOWN_HOLD_OFF();
+}
+
+bool hw_sample_shutdown_button(void) {
+	bool shutdown_pin_read = 0;
+	shutdown_pin_read = palReadPad(HW_SHUTDOWN_IN_GPIO, HW_SHUTDOWN_IN_PIN);
+	return (shutdown_pin_read);
 }

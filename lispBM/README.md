@@ -1004,6 +1004,34 @@ Get FOC q-axis current.
 
 ---
 
+#### get-id-set
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(get-id-set)
+```
+
+Get the set FOC d-axis current. This is the raw requested current.
+
+---
+
+#### get-iq-set
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(get-iq-set)
+```
+
+Get the set FOC q-axis current. This is the raw requested current.
+
+---
+
 #### get-vd
 
 | Platforms | Firmware |
@@ -3070,7 +3098,29 @@ Restore app configuration to the default values.
 (conf-dc-cal calUndriven)
 ```
 
-Run FOC DC offset calibration. calUndriven can be set to true for including the undriven voltages in the calibration, which requires that the motor stands still.
+Run FOC DC offset calibration. calUndriven can be set to true for including the undriven voltages in the calibration, which requires that the motor stands still. If the calibration fails nil is returned and on success a list with the new offsets in the following format is returned:
+
+```clj
+(i0 i1 i2 v0 v1 v2 v0-undriven v1-undriven v2-undriven)
+```
+
+---
+
+#### conf-get-limits
+
+| Platforms | Firmware |
+|---|---|
+| ESC | 6.05+ |
+
+```clj
+(conf-get-limits)
+```
+
+Get all overridden current limits from speed, temperature, voltage, wattage etc. Return the following list:
+
+```clj
+(motor-min motor-max input-min input-max)
+```
 
 ---
 

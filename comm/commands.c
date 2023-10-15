@@ -547,7 +547,8 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 #endif
 
 			mcconf->lo_current_max = mcconf->l_current_max * mcconf->l_current_max_scale;
-			mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
+			//mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
+			mcconf->lo_current_min = mcconf->l_current_min ;
 			mcconf->lo_in_current_max = mcconf->l_in_current_max;
 			mcconf->lo_in_current_min = mcconf->l_in_current_min;
 
@@ -989,7 +990,8 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 			mcconf->l_in_current_max = buffer_get_float32_auto(data, &ind);
 		}
 
-		mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
+		//mcconf->lo_current_min = mcconf->l_current_min * mcconf->l_current_min_scale;
+		mcconf->lo_current_min = mcconf->l_current_min;
 		mcconf->lo_current_max = mcconf->l_current_max * mcconf->l_current_max_scale;
 		mcconf->lo_in_current_min = mcconf->l_in_current_min;
 		mcconf->lo_in_current_max = mcconf->l_in_current_max;

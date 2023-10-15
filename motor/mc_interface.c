@@ -2462,7 +2462,8 @@ static void update_override_limits(volatile motor_if_state_t *motor, volatile mc
 	bms_update_limits(&lo_in_min,  &lo_in_max, conf->l_in_current_min, conf->l_in_current_max);
 
 	conf->lo_in_current_max = utils_min_abs(conf->l_in_current_max, lo_in_max);
-	conf->lo_in_current_min = utils_min_abs(conf->l_in_current_min, lo_in_min);
+	//conf->lo_in_current_min = utils_min_abs(conf->l_in_current_min, lo_in_min);
+	conf->lo_in_current_min = conf->l_in_current_min;
 
 	// Limit iq based on the input current. The input current depends on id and iq combined, but id is determined
 	// from iq based on MTPA and field weakening, which makes it tricky to limit them together in the fast
@@ -2486,7 +2487,7 @@ static void update_override_limits(volatile motor_if_state_t *motor, volatile mc
 	float lo_min = utils_min_abs(lo_min_mos, lo_min_mot);
 
 	lo_max = utils_min_abs(lo_max, lo_max_rpm);
-	lo_max = utils_min_abs(lo_max, lo_min_rpm);
+	//lo_max = utils_min_abs(lo_max, lo_min_rpm);
 	lo_max = utils_min_abs(lo_max, lo_max_curr_dec);
 	lo_max = utils_min_abs(lo_max, lo_fet_temp_accel);
 	lo_max = utils_min_abs(lo_max, lo_motor_temp_accel);
@@ -2502,7 +2503,8 @@ static void update_override_limits(volatile motor_if_state_t *motor, volatile mc
 	}
 
 	conf->lo_current_max = lo_max;
-	conf->lo_current_min = lo_min;
+	//conf->lo_current_min = lo_min;
+	conf->lo_current_min = conf->l_current_min;
 }
 
 static volatile motor_if_state_t *motor_now(void) {

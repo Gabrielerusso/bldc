@@ -1246,11 +1246,11 @@ float mcpwm_foc_get_iq(void) {
 }
 
 float mcpwm_foc_get_id_set(void) {
-	return get_motor_now()->m_id_set;
+	return get_motor_now()->m_motor_state.id_target;
 }
 
 float mcpwm_foc_get_iq_set(void) {
-	return get_motor_now()->m_iq_set;
+	return get_motor_now()->m_motor_state.iq_target;
 }
 
 /**

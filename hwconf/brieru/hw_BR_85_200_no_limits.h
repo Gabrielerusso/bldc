@@ -16,11 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
-#ifndef HW_BR_85_200_H_
-#define HW_BR_85_200_H_ 
+#ifndef HW_BR_85_200_no_limits_H_
+#define HW_BR_85_200_no_limits_H_ 
 
-#define HW_NAME					"BRIESC_85_200"
-
+#define HW_NAME					"BRIESC_85_200_no_limits"
 
 // HW properties
 #define HW_HAS_3_SHUNTS
@@ -293,10 +292,10 @@
 #define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
-#define HW_LIM_CURRENT			-380.0, 380.0
+#define HW_LIM_CURRENT			-400.0, 400.0
 #define HW_LIM_CURRENT_IN		-200.0, 200.0
-#define HW_LIM_CURRENT_ABS		0.0, 450.0
-#define HW_LIM_VIN				13.0, 80.0
+#define HW_LIM_CURRENT_ABS		0.0, 500.0
+#define HW_LIM_VIN				13.0, 85.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1
 #define HW_LIM_DUTY_MAX			0.0, 0.96

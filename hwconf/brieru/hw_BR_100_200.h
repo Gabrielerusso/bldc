@@ -127,7 +127,7 @@
 #define V_REG					3.30
 #endif
 #ifndef VIN_R1
-#define VIN_R1					64000.0
+#define VIN_R1					60400.0
 #endif
 #ifndef VIN_R2
 #define VIN_R2					2200.0

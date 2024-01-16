@@ -34,7 +34,7 @@
 #define SHUTDOWN_SET_SAMPLING_DISABLED(d)
 #endif
 
-#define SHUTDOWN_SAVE_BACKUPDATA_TIMEOUT 60*2 
+#define SHUTDOWN_SAVE_BACKUPDATA_TIMEOUT 60 
 // time of inactivity after wich backup data (odometer, running time, ...) is
 // stored to emulated eeprom when not using power switch. Must be greater than
 // average stopping time, usually semaphores require 120s max, so 60*3s or 

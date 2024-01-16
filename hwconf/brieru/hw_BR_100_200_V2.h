@@ -267,8 +267,8 @@
 #define MCCONF_FOC_F_ZV					28000.0
 #define MCCONF_L_MAX_ABS_CURRENT		300.0	// The maximum absolute current above which a fault is generated
 #define MCCONF_FOC_SAMPLE_V0_V7			false	// Run control loop in both v0 and v7 (requires phase shunts)
-#define MCCONF_L_IN_CURRENT_MAX			90.0	// Input current limit in Amperes (Upper)
-#define MCCONF_L_IN_CURRENT_MIN			-20.0	// Input current limit in Amperes (Lower)
+#define MCCONF_L_IN_CURRENT_MAX			60.0	// Input current limit in Amperes (Upper)
+#define MCCONF_L_IN_CURRENT_MIN			-10.0	// Input current limit in Amperes (Lower)
 #define MCCONF_FOC_CURRENT_FILTER_CONST	0.8		// Filter constant for the filtered currents
 #define MCCONF_FOC_TEMP_COMP			false	// Motor temperature compensation
 #define MCCONF_FOC_TEMP_COMP_BASE_TEMP	25.0	// Motor temperature compensation base temperature
@@ -287,7 +287,7 @@
 #define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 30% of the time the motor is unbalanced
 
 // APP OVERRIDE
-#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_10M
+#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_10S
 #define APPCONF_CAN_STATUS_RATE_1			100
 #define APPCONF_CAN_STATUS_RATE_2			10
 #define APPCONF_ADC_HYST					0.05
@@ -300,14 +300,14 @@
 #define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
-#define HW_LIM_CURRENT			-450.0, 450.0
+#define HW_LIM_CURRENT			-400.0, 400.0
 #define HW_LIM_CURRENT_IN		-200.0, 200.0
-#define HW_LIM_CURRENT_ABS		0.0, 500.0
+#define HW_LIM_CURRENT_ABS		0.0, 540.0
 #define HW_LIM_VIN				25.0, 96.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1
 #define HW_LIM_DUTY_MAX			0.0, 0.96
-#define HW_LIM_TEMP_FET			-30.0, 90.0
+#define HW_LIM_TEMP_FET			-30.0, 85.0
 
 // HW-specific functions
 float briesc_get_temp(void);

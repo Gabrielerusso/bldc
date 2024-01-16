@@ -27,7 +27,6 @@
 #include "tokpar.h"
 #include "symrepr.h"
 #include "heap.h"
-#include "qq_expand.h"
 #include "env.h"
 
 char tokpar_sym_str[TOKENIZER_MAX_SYMBOL_AND_STRING_LENGTH];
@@ -42,6 +41,33 @@ typedef struct {
   uint32_t len;
 } matcher;
 
+/*
+  \#\a -> 7                 ; control-g
+  \#\b -> 8                 ; backspace, BS
+  \#\t -> 9                 ; tab, TAB
+  \#\n -> 10                ; newline
+  \#\v -> 11                ; vertical tab
+  \#\f -> 12                ; formfeed character
+  \#\r -> 13                ; carriage return, RET
+  \#\e -> 27                ; escape character, ESC
+  \#\s -> 32                ; space character, SPC
+  \#\\ -> 92                ; backslash character, \
+  \#\d -> 127               ; delete character, DEL
+*/
+
+#define NUM_SPECIAL_CHARS 11
+const char special_chars[NUM_SPECIAL_CHARS][2] =
+  {{'a', '\a'},
+   {'b', '\b'},
+   {'t', '\t'},
+   {'n', '\n'},
+   {'v', '\v'},
+   {'f', '\f'},
+   {'r', '\r'},
+   {'e', 27},
+   {'s', 32},
+   {'\\', '\\'},
+   {'d', 127}};
 
 #define NUM_FIXED_SIZE_TOKENS 16
 const matcher fixed_size_tokens[NUM_FIXED_SIZE_TOKENS] = {
@@ -108,9 +134,19 @@ int tok_syntax(lbm_char_channel_t *chan, uint32_t *res) {
   return tok_match_fixed_size_tokens(chan, fixed_size_tokens, 0, NUM_FIXED_SIZE_TOKENS, res);
 }
 
-bool symchar0(char c) {
-  const char *allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=<>#!";
+static bool alpha_char(char c) {
+  return ((c >= 'a' && c <= 'z') ||
+          (c >= 'A' && c <= 'Z'));
+}
 
+static bool num_char(char c) {
+  return (c >= '0' && c <= '9');
+}
+
+static bool symchar0(char c) {
+  const char *allowed = "+-*/=<>#!";
+
+  if (alpha_char(c)) return true;
   int i = 0;
   while (allowed[i] != 0) {
     if (c == allowed[i]) return true;
@@ -119,9 +155,10 @@ bool symchar0(char c) {
   return false;
 }
 
-bool symchar(char c) {
-  const char *allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/=<>!?_";
+static bool symchar(char c) {
+  const char *allowed = "+-*/=<>!?_";
 
+  if (alpha_char(c) || num_char(c)) return true;
   int i = 0;
   while (allowed[i] != 0) {
     if (c == allowed[i]) return true;
@@ -233,6 +270,24 @@ int tok_char(lbm_char_channel_t *chan, char *res) {
   if (r == CHANNEL_MORE) return TOKENIZER_NEED_MORE;
   if (r == CHANNEL_END)  return TOKENIZER_NO_TOKEN;
 
+  if (c == '\\') {
+    r = lbm_channel_peek(chan, 3, &c);
+    if (r == CHANNEL_MORE) return TOKENIZER_NEED_MORE;
+    if (r == CHANNEL_END)  return TOKENIZER_NO_TOKEN;
+
+    bool ok = false;
+    for (int i = 0; i < NUM_SPECIAL_CHARS; i ++) {
+      if (c == special_chars[i][0]) {
+        *res = special_chars[i][1];
+        ok = true;
+      }
+    }
+    if (ok) {
+      return 4;
+    } else {
+      return TOKENIZER_CHAR_ERROR;
+    }
+  }
   *res = c;
   return 3;
 }

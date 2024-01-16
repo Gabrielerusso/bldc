@@ -1,5 +1,5 @@
 /*
-    Copyright 2018, 2021, 2022 Joel Svensson  svenssonjoel@yahoo.se
+    Copyright 2018, 2021, 2022, 2024 Joel Svensson  svenssonjoel@yahoo.se
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,19 +38,15 @@
 #include "lbm_channel.h"
 #include "lbm_version.h"
 
-#define EVAL_CPS_STACK_SIZE 256
 #define GC_STACK_SIZE 256
 #define PRINT_STACK_SIZE 256
 #define EXTENSION_STORAGE_SIZE 256
-#define VARIABLE_STORAGE_SIZE 256
 #define WAIT_TIMEOUT 2500
 #define STR_SIZE 1024
 #define CONSTANT_MEMORY_SIZE 32*1024
 #define PROF_DATA_NUM 100
 
-lbm_uint print_stack_storage[PRINT_STACK_SIZE];
-extension_fptr extension_storage[EXTENSION_STORAGE_SIZE];
-lbm_value variable_storage[VARIABLE_STORAGE_SIZE];
+lbm_extension_t extensions[EXTENSION_STORAGE_SIZE];
 lbm_uint constants_memory[CONSTANT_MEMORY_SIZE];
 lbm_prof_t prof_data[100];
 
@@ -305,7 +301,7 @@ bool dyn_load(const char *str, const char **code) {
     *code = "(define looprange (macro (it start end body) (me-looprange it start end body)))";
     res = true;
   }
-  
+
   return res;
 }
 
@@ -501,6 +497,14 @@ static lbm_value ext_event(lbm_value *args, lbm_uint argn) {
   return ENC_SYM_NIL;
 }
 
+
+static lbm_value ext_time(lbm_value *args, lbm_uint argn) {
+
+  uint32_t time = timestamp_callback();
+
+  return lbm_enc_u32(time);
+}
+
 /* load a file, caller is responsible for freeing the returned string */
 char * load_file(char *filename) {
   char *file_str = NULL;
@@ -586,11 +590,16 @@ void lookup_local(eval_context_t *ctx, void *arg1, void *arg2) {
 
 
 void sym_it(const char *str) {
-  printf("%s\n", str);
+  bool sym_name_flash = lbm_symbol_in_flash((char *)str);
+  bool sym_entry_flash = lbm_symbol_list_entry_in_flash((char *)str);
+  printf("[%s, %s]: %s\n",
+         sym_name_flash ? "FLASH" : "LBM_MEM",
+         sym_entry_flash ? "FLASH" : "LBM_MEM",
+         str);
 }
 
-static lbm_uint memory[LBM_MEMORY_SIZE_8K];
-static lbm_uint bitmap[LBM_MEMORY_BITMAP_SIZE_8K];
+static lbm_uint memory[LBM_MEMORY_SIZE_1M];
+static lbm_uint bitmap[LBM_MEMORY_BITMAP_SIZE_1M];
 
 char char_array[1024];
 lbm_uint word_array[1024];
@@ -620,11 +629,12 @@ int main(int argc, char **argv) {
   }
 
   if (!lbm_init(heap_storage, heap_size,
+                memory, LBM_MEMORY_SIZE_1M,
+                bitmap, LBM_MEMORY_BITMAP_SIZE_1M,
                 GC_STACK_SIZE,
-                memory, LBM_MEMORY_SIZE_8K,
-                bitmap, LBM_MEMORY_BITMAP_SIZE_8K,
-                print_stack_storage, PRINT_STACK_SIZE,
-                extension_storage, EXTENSION_STORAGE_SIZE)) {
+                PRINT_STACK_SIZE,
+                extensions,
+                EXTENSION_STORAGE_SIZE)) {
     printf("Failed to initialize LispBM\n");
     return 0;
   }
@@ -649,8 +659,6 @@ int main(int argc, char **argv) {
   lbm_set_usleep_callback(sleep_callback);
   lbm_set_dynamic_load_callback(dyn_load);
   lbm_set_printf_callback(error_print);
-
-  lbm_variables_init(variable_storage, VARIABLE_STORAGE_SIZE);
 
   if (lbm_array_extensions_init()) {
     printf("Array extensions loaded\n");
@@ -711,7 +719,13 @@ int main(int argc, char **argv) {
     printf("Extension added.\n");
   else
     printf("Error adding extension.\n");
-  
+
+  res = lbm_add_extension("time", ext_time);
+  if (res)
+    printf("Extension added.\n");
+  else
+    printf("Error adding extension.\n");
+
   lbm_add_symbol_const("a01", &sym_res);
   lbm_add_symbol_const("a02", &sym_loop);
   lbm_add_symbol_const("break", &sym_break);
@@ -752,6 +766,7 @@ int main(int argc, char **argv) {
       printf("Recovered: %"PRI_INT"\n", heap_state.gc_recovered);
       printf("Recovered arrays: %"PRI_UINT"\n", heap_state.gc_recovered_arrays);
       printf("Marked: %"PRI_INT"\n", heap_state.gc_marked);
+      printf("GC stack size: %"PRI_UINT"\n", lbm_get_gc_stack_size());
       printf("GC SP max: %"PRI_UINT"\n", lbm_get_gc_stack_max());
       printf("--(Symbol and Array memory)---------------------------------\n");
       printf("Memory size: %"PRI_UINT" Words\n", lbm_memory_num_words());
@@ -801,19 +816,15 @@ int main(int argc, char **argv) {
       printf("Total:\t%u samples\n", tot_samples);
       free(str);
     } else if (strncmp(str, ":env", 4) == 0) {
-      lbm_value curr = *lbm_get_env_ptr();
-      printf("Environment:\r\n");
-      while (lbm_type_of(curr) == LBM_TYPE_CONS) {
-        res = lbm_print_value(output,1024, lbm_car(curr));
-        curr = lbm_cdr(curr);
-        printf("  %s\r\n",output);
-      }
-      printf("Variables:\r\n");
-      for (int i = 0; i < lbm_get_num_variables(); i ++) {
-
-        const char *name = lbm_get_variable_name_by_index(i);
-        lbm_print_value(output,1024, lbm_get_variable_by_index(i));
-        printf("  %s = %s\r\n", name ? name : "error", output);
+      for (int i = 0; i < GLOBAL_ENV_ROOTS; i ++) {
+        lbm_value *env = lbm_get_global_env();
+        lbm_value curr = env[i];
+        printf("Environment [%d]:\r\n", i);
+        while (lbm_type_of(curr) == LBM_TYPE_CONS) {
+          res = lbm_print_value(output,1024, lbm_car(curr));
+          curr = lbm_cdr(curr);
+          printf("  %s\r\n",output);
+        }
       }
       free(str);
     }else if (n >= 5 && strncmp(str, ":load", 5) == 0) {
@@ -878,11 +889,12 @@ int main(int argc, char **argv) {
         }
 
         lbm_init(heap_storage, heap_size,
+                 memory, LBM_MEMORY_SIZE_1M,
+                 bitmap, LBM_MEMORY_BITMAP_SIZE_1M,
                  GC_STACK_SIZE,
-                 memory, LBM_MEMORY_SIZE_8K,
-                 bitmap, LBM_MEMORY_BITMAP_SIZE_8K,
-                 print_stack_storage, PRINT_STACK_SIZE,
-                 extension_storage, EXTENSION_STORAGE_SIZE);
+                 PRINT_STACK_SIZE,
+                 extensions,
+                 EXTENSION_STORAGE_SIZE);
 
         if (!lbm_const_heap_init(const_heap_write,
                            &const_heap,constants_memory,
@@ -891,8 +903,6 @@ int main(int argc, char **argv) {
         } else {
           printf("Constants memory initialized\n");
         }
-
-        lbm_variables_init(variable_storage, VARIABLE_STORAGE_SIZE);
 
         if (lbm_array_extensions_init()) {
           printf("Array extensions loaded\n");
@@ -928,11 +938,12 @@ int main(int argc, char **argv) {
       }
 
       lbm_init(heap_storage, heap_size,
+               memory, LBM_MEMORY_SIZE_1M,
+               bitmap, LBM_MEMORY_BITMAP_SIZE_1M,
                GC_STACK_SIZE,
-               memory, LBM_MEMORY_SIZE_8K,
-               bitmap, LBM_MEMORY_BITMAP_SIZE_8K,
-               print_stack_storage, PRINT_STACK_SIZE,
-               extension_storage, EXTENSION_STORAGE_SIZE);
+               PRINT_STACK_SIZE,
+               extensions,
+               EXTENSION_STORAGE_SIZE);
 
       if (!lbm_const_heap_init(const_heap_write,
                                &const_heap,constants_memory,
@@ -941,8 +952,6 @@ int main(int argc, char **argv) {
       } else {
         printf("Constants memory initialized\n");
       }
-
-      lbm_variables_init(variable_storage, VARIABLE_STORAGE_SIZE);
 
       if (lbm_array_extensions_init()) {
         printf("Array extensions loaded\n");

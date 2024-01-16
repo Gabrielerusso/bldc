@@ -1,3 +1,4 @@
+
 /*
     Copyright 2018 , 2022 Joel Svensson        svenssonjoel@yahoo.se
 
@@ -199,6 +200,7 @@ Aux bits could be used for storing vector size. Up to 30bits should be available
 #define LBM_PTR_BIT                      0x00000001u
 #define LBM_PTR_VAL_MASK                 0x03FFFFFCu
 #define LBM_PTR_TYPE_MASK                0xFC000000u
+#define LBM_PTR_NULL                     (0x03FFFFFCu >> 2)
 
 // The address is an index into the const heap.
 #define LBM_PTR_TO_CONSTANT_BIT          0x04000000u
@@ -214,6 +216,7 @@ Aux bits could be used for storing vector size. Up to 30bits should be available
 #define LBM_PTR_BIT                      (lbm_uint)0x1
 #define LBM_PTR_VAL_MASK                 (lbm_uint)0x03FFFFFFFFFFFFFC
 #define LBM_PTR_TYPE_MASK                (lbm_uint)0xF800000000000000
+#define LBM_PTR_NULL                     ((lbm_uint)0x03FFFFFFFFFFFFFC >> 2)
 
 #define LBM_PTR_TO_CONSTANT_BIT          (lbm_uint)0x0400000000000000
 #define LBM_PTR_TO_CONSTANT_MASK         ~LBM_PTR_TO_CONSTANT_BIT
@@ -277,6 +280,15 @@ typedef struct {
   lbm_uint size;            /// Number of elements
   lbm_uint *data;           /// pointer to lbm_memory array or C array.
 } lbm_array_header_t;
+
+/** Lock GC mutex
+ *  Locks a mutex during GC marking when using the pointer reversal algorithm.
+ *  Does nothing when using stack based GC mark.
+ */
+void lbm_gc_lock(void);
+/* Unlock GC mutex
+ */
+void lbm_gc_unlock(void);
 
 /** Initialize heap storage.
  * \param addr Pointer to an array of lbm_cons_t elements. This array must at least be aligned 4.
@@ -510,11 +522,11 @@ lbm_value lbm_list_destructive_reverse(lbm_value list);
  * \warning This is a dangerous function that should be used carefully. Cyclic structures on the heap
  * may lead to the function not terminating.
  *
- * \param m Number of elements to copy or -1 for all.
+ * \param m Number of elements to copy or -1 for all. If 1, m will be updated with the length of the list
  * \param list A list.
  * \return Reversed list or enc_sym(SYM_MERROR) if heap is full.
  */
-lbm_value lbm_list_copy(int m, lbm_value list);
+lbm_value lbm_list_copy(int *m, lbm_value list);
 
 /** A destructive append of two lists
  *
@@ -542,6 +554,10 @@ void lbm_get_heap_state(lbm_heap_state_t *);
  * \return maximum value the gc stack sp reached so far.
  */
 lbm_uint lbm_get_gc_stack_max(void);
+/** Get the size of the GC stack.
+ * \return the size of the gc stack.
+ */
+lbm_uint lbm_get_gc_stack_size(void);
 // Garbage collection
 /** Increment the counter that is counting the number of times GC ran
  *
@@ -556,19 +572,27 @@ void lbm_nil_freelist(void);
  * \return 1 on success or 0 if the free-list is corrupted.
  */
 int lbm_gc_mark_freelist(void);
-/** Mark heap cells reachable from the lbm_value v.
- *
- * \return 1 on success and 0 if the stack used internally is full.
+/** Mark all heap cells reachable from an environment.
+ * \param environment.
  */
-int lbm_gc_mark_phase(void);
+void lbm_gc_mark_env(lbm_value);
+/** Mark heap cells reachable from the lbm_value v.
+ * \param  root
+ */
+void lbm_gc_mark_phase(lbm_value root);
 /** Performs lbm_gc_mark_phase on all the values of an array.
- *
+ *  This function is similar to lbm_gc_mark_roots but performs
+ *  extra checks to not traverse into non-standard values.
+ *  TODO: Check if this function is really needed.
  * \param data Array of roots to traverse from.
  * \param n Number of elements in roots-array.
- * \return 1 on success or 0 for failure.
  */
-int lbm_gc_mark_aux(lbm_uint *data, lbm_uint n);
-
+void lbm_gc_mark_aux(lbm_uint *data, lbm_uint n);
+/** Performs lbm_gc_mark_phase on all the values in the roots array.
+ * \param roots pointer to array of roots.
+ * \param num_roots size of array of roots.
+ */
+void lbm_gc_mark_roots(lbm_uint *roots, lbm_uint num_roots);
 /** Sweep up all non marked heap cells and place them on the free list.
  *
  * \return 1
@@ -598,11 +622,16 @@ int lbm_lift_array(lbm_value *value, char *data, lbm_uint num_elt);
  * \return -1 for failure or length of array.
  */
 lbm_int lbm_heap_array_get_size(lbm_value arr);
-/** Get a pointer to the data of an array.
+/** Get a pointer to the data of an array for read only purposes.
  * \param arr lbm_value array to get pointer from.
  * \return NULL or valid pointer.
  */
-uint8_t *lbm_heap_array_get_data(lbm_value arr);
+const uint8_t *lbm_heap_array_get_data_ro(lbm_value arr);
+/** Get a pointer to the data of an array for read/write purposes.
+ * \param arr lbm_value array to get pointer from.
+ * \return NULL or valid pointer.
+ */
+uint8_t *lbm_heap_array_get_data_rw(lbm_value arr);
 /** Explicitly free an array.
  *  This function needs to be used with care and knowledge.
  * \param arr Array value.

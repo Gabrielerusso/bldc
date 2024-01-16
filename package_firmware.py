@@ -6,7 +6,7 @@ import subprocess
 def get_git_revision_short_hash() -> str:
     return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
-# Get the origin and destionation directories
+# Get the origin and destination directories
 build_dir = os.path.dirname(os.path.abspath(__file__)) + '/build'
 package_dir = os.path.dirname(os.path.abspath(__file__)) + '/package'
 
@@ -73,6 +73,7 @@ package_dict["LUNA_BBSHD"] = [['luna_bbshd', default_name]]
 package_dict["LUNA_M600"] = [['luna_m600', default_name]]
 package_dict["LUNA_M600_V2"] = [['luna_m600', default_name]]
 package_dict["LUNA_M600_V2_Rev5"] = [['luna_m600_Rev5', default_name]]
+package_dict["LUNA_M600_V2_Rev5_60V"] = [['luna_m600_Rev5_60V', default_name]]
 package_dict["UNITY"] = [['unity', default_name],
                     ['unity_no_limits', no_limits_name]]
 package_dict["Cheap_FOCer_2"] = [['Cheap_FOCer_2', default_name],
@@ -96,6 +97,7 @@ package_dict["STORMCORE_100S"] = [['stormcore_100s', default_name],
 package_dict["Little_FOCer"] = [['Little_FOCer', default_name]]
 package_dict["Little_FOCer_V3"] = [['Little_FOCer_V3', default_name]]
 package_dict["Little_FOCer_V3_1"] = [['Little_FOCer_V3_1', default_name]]
+package_dict["Thor300"] = [['Thor_300_20s', default_name]]
 package_dict["UXV_SR"] = [['uxv_sr', default_name]]
 package_dict["GESC"] = [['gesc', default_name]]
 package_dict["Warrior6"] = [['warrior6', default_name]]
@@ -125,7 +127,7 @@ package_dict["UBOX_SINGLE_100"] = [['ubox_single_100', default_name],
 package_dict["UBOX_SINGLE_80"] = [['ubox_single_80', default_name],
                                   ['ubox_single_80_no_limits', no_limits_name]]
 package_dict["UBOX_SINGLE_85_200"] = [['ubox_single_85_200', 'default_name.bin'],
-                                  ['ubox_single_85_200_no_limits', 'no_limits_name']]
+                                  ['ubox_single_85_200_no_limits', no_limits_name]]
 package_dict["UBOX_V2_100"] = [['ubox_v2_100', default_name],
                                ['ubox_v2_100_no_limits', no_limits_name]]
 package_dict["EDU"] = [['edu', default_name],
@@ -155,6 +157,18 @@ package_dict["SOLO"] = [['solo', default_name],
                     ['solo_no_limits', no_limits_name]]
 package_dict["FSESC_75_200_ALU"] = [['fsesc_75_200_alu', default_name],
                     ['fsesc_75_200_alu_no_limits', no_limits_name]]
+package_dict["MKSESC_75_100"] = [['mksesc_75_100', default_name],
+                    ['mksesc_75_100_no_limits', no_limits_name]]
+package_dict["MKSESC_75_100_V2"] = [['mksesc_75_100_v2', default_name],
+                    ['mksesc_75_100_v2_no_limits', no_limits_name]]                    
+package_dict["MKSESC_75_200_V2"] = [['mksesc_75_200_v2', default_name],
+                    ['mksesc_75_200_v2_no_limits', no_limits_name]]
+package_dict["MKSESC_84_100_HP"] = [['mksesc_84_100_hp', default_name],
+                    ['mksesc_84_100_hp_no_limits', no_limits_name]]                    
+package_dict["MKSESC_84_200_HP"] = [['mksesc_84_200_hp', default_name],
+                    ['mksesc_84_200_hp_no_limits', no_limits_name]]
+package_dict["STR500"] = [['str500', default_name],
+                    ['str500_no_limits', no_limits_name]]
 
 # This is the firmware stub string
 res_firmwares_string = '        <file>TARGET_DESTINATION_DIRECTORY/TARGET_DESTINATION_FILENAME</file>\n'
@@ -184,10 +198,16 @@ for directory in package_dict:
     for target in package_dict[directory]:
         # Shorthand variable
         destination_file_name = target[1]
+        destination_full_path = os.path.join(destination_path, destination_file_name)
         origin_file_name = target[0] + '.bin'
+        origin_full_path = os.path.join(build_dir, target[0], origin_file_name)
+
+        # Skip firmware that has not been built
+        if not os.path.isfile(origin_full_path):
+            continue
 
         # Copy the file
-        shutil.copy(os.path.join(build_dir, target[0], origin_file_name), os.path.join(destination_path, destination_file_name))
+        shutil.copy(origin_full_path, destination_full_path)
 
         # Replace the stub string with the target specifics
         target_res_string = res_firmwares_string.replace("TARGET_DESTINATION_DIRECTORY", directory).replace("TARGET_DESTINATION_FILENAME", destination_file_name)

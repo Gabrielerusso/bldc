@@ -27,6 +27,14 @@
 	* Added can-recv-sid.
 	* Added can-recv-eid.
 	* Added app-adc-range-ok.
+	* Much faster return on error for i2c-tx-rx.
+	* Added shutdown-hold.
+	* Added crc32.
+	* Support for only polling variables starting with VT.
+	* Added rand.
+	* Built-in sort function that is much faster and can sort much larger lists.
+	* Added foc-play-tone and foc-play-stop.
+	* Added foc-play-samples.
 * Hall sensors improvements:
 	* Smooth transition to sensorless.
 	* Bug fix in interpolation.

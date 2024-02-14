@@ -66,7 +66,7 @@
                                 chThdSleepMilliseconds(100)
 #define HW_SHUTDOWN_HOLD_OFF()	palClearPad(HW_SHUTDOWN_GPIO, HW_SHUTDOWN_PIN); \
                                 chThdSleepMilliseconds(1000);
-#define HW_SAMPLE_SHUTDOWN()	hw_sample_shutdown_button() //not used
+#define HW_SAMPLE_SHUTDOWN()	true //no input reading
 
 #define HW_EARLY_INIT()			palSetPadMode(HW_SHUTDOWN_GPIO, HW_SHUTDOWN_PIN, PAL_MODE_OUTPUT_PUSHPULL); \
 								HW_SHUTDOWN_HOLD_ON()

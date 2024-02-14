@@ -3259,7 +3259,10 @@ static lbm_value ext_conf_set(lbm_value *args, lbm_uint argn) {
 			appconf->app_pas_conf.current_scaling = lbm_dec_as_float(args[1]);
 			changed_app = 2;
 		} else if (compare_symbol(name, &syms_vesc.tc_level)) {
-			appconf->app_adc_conf.tc_level = lbm_dec_as_float(args[1]);
+			float tc_level = lbm_dec_as_float(args[1]);
+			if(tc_level >= 0.0 && tc_level < 100.0){
+				appconf->app_adc_conf.tc_level = tc_level;
+			}
 			changed_app = 2;
 		} else if (compare_symbol(name, &syms_vesc.tc_max_rpm_rate)) {
 			appconf->app_adc_conf.tc_max_rpm_rate = lbm_dec_as_float(args[1]);

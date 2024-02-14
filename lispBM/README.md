@@ -3205,6 +3205,13 @@ The following selection of app and motor parameters can be read and set from Lis
 'adc-v1-min             ; Throttle 1 low fault voltage (Added in FW 6.05)
 'adc-v1-max             ; Throttle 1 high fault voltage (Added in FW 6.05)
 'pas-current-scaling    ; PAS current scaling (Added in FW 6.05)
+'tc-level               ; Advanced Traction Control level (Added in FW 6.05)
+                        ; values between   1.0  -> 100.0
+                        ;                 NO TC -> MAX TC
+                        ; common values are between 1.5 and 10.0
+'tc-max-rpm-rate        ; Advanced Traction Control rate limit in ERPM/s
+                        ; common values are 3000 to 10000 ERPM/s
+                        ; higher values mean more aggressive riding
 
 ; Express settings (Added in 6.05)
 'controller-id          ; VESC CAN ID

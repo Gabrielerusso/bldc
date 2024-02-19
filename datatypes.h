@@ -660,7 +660,8 @@ typedef enum {
 
 // PAS sensor types
 typedef enum {
-	PAS_SENSOR_TYPE_QUADRATURE = 0
+	PAS_SENSOR_TYPE_QUADRATURE = 0,
+	PAS_SENSOR_TYPE_3WIRE
 } pas_sensor_type;
 
 typedef struct {

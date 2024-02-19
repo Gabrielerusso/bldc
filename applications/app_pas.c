@@ -120,57 +120,88 @@ float app_pas_get_pedal_rpm(void) {
 }
 
 void pas_event_handler(void) {
-#ifdef HW_PAS1_PORT
-	const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
-	int8_t direction_qem;
-	uint8_t new_state;
 	static uint8_t old_state = 0;
 	static float old_timestamp = 0;
 	static float inactivity_time = 0;
 	static float period_filtered = 0;
-	static int32_t correct_direction_counter = 0;
-
-	uint8_t PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
-	uint8_t PAS2_level = palReadPad(HW_PAS2_PORT, HW_PAS2_PIN);
-
-	new_state = PAS2_level * 2 + PAS1_level;
-	direction_qem = (float) QEM[old_state * 4 + new_state];
-	old_state = new_state;
-
-	// Require several quadrature events in the right direction to prevent vibrations from
-	// engging PAS
-	int8_t direction = (direction_conf * direction_qem);
 	
-	switch(direction) {
-		case 1: correct_direction_counter++; break;
-		case -1:correct_direction_counter = 0; break;
-	}
+	if(config.sensor_type == PAS_SENSOR_TYPE_QUADRATURE){
+#ifdef HW_PAS1_PORT &&  defined(HW_PAS2_PORT)
+		const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
+		int8_t direction_qem;
+		uint8_t new_state;
+		static int32_t correct_direction_counter = 0;
 
-	const float timestamp = (float)chVTGetSystemTimeX() / (float)CH_CFG_ST_FREQUENCY;
+		uint8_t PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
+		uint8_t PAS2_level = palReadPad(HW_PAS2_PORT, HW_PAS2_PIN);
 
-	// sensors are poorly placed, so use only one rising edge as reference
-	if( (new_state == 3) && (correct_direction_counter >= 4) ) {
-		float period = (timestamp - old_timestamp) * (float)config.magnets;
-		old_timestamp = timestamp;
+		new_state = PAS2_level * 2 + PAS1_level;
+		direction_qem = (float) QEM[old_state * 4 + new_state];
+		old_state = new_state;
 
-		UTILS_LP_FAST(period_filtered, period, 1.0);
-
-		if(period_filtered < min_pedal_period) { //can't be that short, abort
-			return;
+		// Require several quadrature events in the right direction to prevent vibrations from
+		// engging PAS
+		int8_t direction = (direction_conf * direction_qem);
+			switch(direction) {
+			case 1: correct_direction_counter++; break;
+			case -1:correct_direction_counter = 0; break;
 		}
-		pedal_rpm = 60.0 / period_filtered;
-		pedal_rpm *= (direction_conf * (float)direction_qem);
-		inactivity_time = 0.0;
-	}
-	else {
-		inactivity_time += 1.0 / (float)config.update_rate_hz;
 
-		//if no pedal activity, set RPM as zero
-		if(inactivity_time > max_pulse_period) {
-			pedal_rpm = 0.0;
+		const float timestamp = (float)chVTGetSystemTimeX() / (float)CH_CFG_ST_FREQUENCY;
+
+		// sensors are poorly placed, so use only one rising edge as reference
+		if( (new_state == 3) && (correct_direction_counter >= 4) ) {
+			float period = (timestamp - old_timestamp) * (float)config.magnets;
+			old_timestamp = timestamp;
+
+			UTILS_LP_FAST(period_filtered, period, 1.0);
+
+			if(period_filtered < min_pedal_period) { //can't be that short, abort
+				return;
+			}
+			pedal_rpm = 60.0 / period_filtered;
+			pedal_rpm *= (direction_conf * (float)direction_qem);
+			inactivity_time = 0.0;
 		}
-	}
+		else {
+			inactivity_time += 1.0 / (float)config.update_rate_hz;
+
+			//if no pedal activity, set RPM as zero
+			if(inactivity_time > max_pulse_period) {
+				pedal_rpm = 0.0;
+			}
+		}
 #endif
+	} else {
+#ifdef HW_PAS1_PORT
+		uint8_t PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
+		const float timestamp = (float)chVTGetSystemTimeX() / (float)CH_CFG_ST_FREQUENCY;
+
+		// sensors are poorly placed, so use only one rising edge as reference
+		if(PAS1_level == PAL_HIGH  && old_state == PAL_LOW) {
+			float period = (timestamp - old_timestamp) * (float)config.magnets;
+			old_timestamp = timestamp;
+
+			UTILS_LP_FAST(period_filtered, period, 0.8);
+
+			if(period_filtered < min_pedal_period) { //can't be that short, abort
+				return;
+			}
+			pedal_rpm = 60.0 / period_filtered;
+			pedal_rpm *= direction_conf;
+			inactivity_time = 0.0;
+		}
+		else {
+			inactivity_time += 1.0 / (float)config.update_rate_hz;
+
+			//if no pedal activity, set RPM as zero
+			if(inactivity_time > max_pulse_period) {
+				pedal_rpm = 0.0;
+			}
+		}
+		old_state = PAS1_level;
+#endif
+	}
 }
 
 static THD_FUNCTION(pas_thread, arg) {
@@ -181,6 +212,8 @@ static THD_FUNCTION(pas_thread, arg) {
 
 #ifdef HW_PAS1_PORT
 	palSetPadMode(HW_PAS1_PORT, HW_PAS1_PIN, PAL_MODE_INPUT_PULLUP);
+#endif
+#ifdef HW_PAS2_PORT
 	palSetPadMode(HW_PAS2_PORT, HW_PAS2_PIN, PAL_MODE_INPUT_PULLUP);
 #endif
 

@@ -218,6 +218,7 @@ typedef struct {
 	lbm_uint adc_v1_max;
 	lbm_uint pas_current_scaling;
 	lbm_uint tc_status;
+	lbm_uint max_erpm_rate;
 
 	// Sysinfo
 	lbm_uint hw_name;
@@ -553,6 +554,8 @@ static bool compare_symbol(lbm_uint sym, lbm_uint *comp) {
 			lbm_add_symbol_const("pas-current-scaling", comp);
 		} else if (comp == &syms_vesc.tc_status) {
 			lbm_add_symbol_const("tc-status", comp);
+		} else if (comp == &syms_vesc.max_erpm_rate) {
+			lbm_add_symbol_const("max-rpm-rate", comp);
 		}
 
 		else if (comp == &syms_vesc.hw_name) {
@@ -3526,6 +3529,9 @@ static lbm_value ext_conf_set(lbm_value *args, lbm_uint argn) {
 		} else if (compare_symbol(name, &syms_vesc.foc_fw_duty_start)) {
 			mcconf->foc_fw_duty_start = lbm_dec_as_float(args[1]);
 			changed_mc = 2;
+		} else if (compare_symbol(name, &syms_vesc.max_erpm_rate)) {
+			mcconf->max_erpm_rate = lbm_dec_as_float(args[1]);
+			changed_mc = 2;
 		} else if (compare_symbol(name, &syms_vesc.can_baud_rate)) {
 			appconf->can_baud_rate = lbm_dec_as_i32(args[1]);
 			changed_app = 2;
@@ -3846,6 +3852,8 @@ static lbm_value ext_conf_get(lbm_value *args, lbm_uint argn) {
 		res = lbm_enc_float(mcconf->l_min_erpm / speed_fact);
 	} else if (compare_symbol(name, &syms_vesc.max_speed)) {
 		res = lbm_enc_float(mcconf->l_max_erpm / speed_fact);
+	} else if (compare_symbol(name, &syms_vesc.max_erpm_rate)) {
+		res = lbm_enc_float(mcconf->max_erpm_rate);
 	} else if (compare_symbol(name, &syms_vesc.controller_id)) {
 		res = lbm_enc_i(appconf->controller_id);
 	} else if (compare_symbol(name, &syms_vesc.can_baud_rate)) {

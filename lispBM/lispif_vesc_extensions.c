@@ -200,8 +200,8 @@ typedef struct {
 	lbm_uint adc_v1_min;
 	lbm_uint adc_v1_max;
 	lbm_uint pas_current_scaling;
-	lbm_uint tc_level;
 	lbm_uint tc_max_rpm_rate;
+	lbm_uint tc_status;
 
 	// Sysinfo
 	lbm_uint hw_name;
@@ -519,10 +519,10 @@ static bool compare_symbol(lbm_uint sym, lbm_uint *comp) {
 			get_add_symbol("adc-v1-max", comp);
 		} else if (comp == &syms_vesc.pas_current_scaling) {
 			get_add_symbol("pas-current-scaling", comp);
-		} else if (comp == &syms_vesc.tc_level) {
-			get_add_symbol("tc-level", comp);
 		} else if (comp == &syms_vesc.tc_max_rpm_rate) {
 			get_add_symbol("tc-max-rpm-rate", comp);
+		} else if (comp == &syms_vesc.tc_status) {
+			get_add_symbol("tc-status", comp);
 		}
 
 		else if (comp == &syms_vesc.hw_name) {
@@ -3258,14 +3258,10 @@ static lbm_value ext_conf_set(lbm_value *args, lbm_uint argn) {
 		} else if (compare_symbol(name, &syms_vesc.pas_current_scaling)) {
 			appconf->app_pas_conf.current_scaling = lbm_dec_as_float(args[1]);
 			changed_app = 2;
-		} else if (compare_symbol(name, &syms_vesc.tc_level)) {
-			float tc_level = lbm_dec_as_float(args[1]);
-			if(tc_level >= 0.0 && tc_level < 100.0){
-				appconf->app_adc_conf.tc_level = tc_level;
-			}
-			changed_app = 2;
 		} else if (compare_symbol(name, &syms_vesc.tc_max_rpm_rate)) {
 			appconf->app_adc_conf.tc_max_rpm_rate = lbm_dec_as_float(args[1]);
+		} else if (compare_symbol(name, &syms_vesc.tc_status)) {
+			appconf->app_adc_conf.tc = (lbm_dec_as_char(args[1]) > 0);
 			changed_app = 2;
 		}
 	}
@@ -3553,10 +3549,10 @@ static lbm_value ext_conf_get(lbm_value *args, lbm_uint argn) {
 		res = lbm_enc_float(appconf->app_adc_conf.voltage_max);
 	} else if (compare_symbol(name, &syms_vesc.pas_current_scaling)) {
 		res = lbm_enc_float(appconf->app_pas_conf.current_scaling);
-	} else if (compare_symbol(name, &syms_vesc.tc_level)) {
-		res = lbm_enc_float(appconf->app_adc_conf.tc_level);
 	} else if (compare_symbol(name, &syms_vesc.tc_max_rpm_rate)) {
 		res = lbm_enc_float(appconf->app_adc_conf.tc_max_rpm_rate);
+	} else if (compare_symbol(name, &syms_vesc.tc_status)) {
+		res = lbm_enc_float(appconf->app_adc_conf.tc);
 	}
 
 	if (defaultcfg) {

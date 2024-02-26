@@ -549,6 +549,7 @@ typedef struct {
 	int m_batt_filter_const;
 	float m_ntcx_ptcx_temp_base;
 	float m_ntcx_ptcx_res;
+	float max_erpm_rate;
 	// Setup info
 	uint8_t si_motor_poles;
 	float si_gear_ratio;
@@ -687,8 +688,6 @@ typedef struct {
 	bool tc;
 	float tc_max_diff;
 	uint32_t update_rate_hz;
-	float tc_max_rpm_rate;
-	float tc_level;
 } adc_config;
 
 // Nunchuk control types

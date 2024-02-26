@@ -3209,8 +3209,8 @@ The following selection of app and motor parameters can be read and set from Lis
                         ; values between   0.0%  ->  100.0%
                         ;                 NO TC  ->  MAX TC
                         ; common values are between 20.0% and 90.0%
-'tc-max-rpm-rate        ; Advanced Traction Control rate limit in ERPM/s
-                        ; common values are 3000 to 10000 ERPM/s
+'max-rpm-rate           ; erpm rate change limit in ERPM/s
+                        ; common values are 3000 to 12000 ERPM/s
                         ; higher values mean more aggressive riding
 
 ; Express settings (Added in 6.05)

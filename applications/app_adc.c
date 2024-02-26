@@ -594,25 +594,7 @@ static THD_FUNCTION(adc_thread, arg) {
 					rpm_lowest = -rpm_lowest;
 				}
 
-				// Traction Control - derivative of rpm - single/multi esc
-				// TC based on rate of change of rotational speed
-				if(config.tc_level > 1.0 && config.tc_max_rpm_rate > 1.0){
-					static float last_rpm = 0;
-					float drpm = rpm_filtered-last_rpm;
-					float drpm_dt = drpm/((float)sleep_time); // d_rpm/d_ticks
-					last_rpm = rpm_filtered;
-					//convert rpm/s to rpm/ticks
-					float rpm_dt_max_diff = config.tc_max_rpm_rate/(float)CH_CFG_ST_FREQUENCY;
-					float rpm_dt_thresold_diff = (rpm_dt_max_diff/ADVANCED_TC_THRESOLD_FACTOR);
-					if (drpm_dt < rpm_dt_thresold_diff) drpm_dt = rpm_dt_thresold_diff;
-					if (drpm_dt > rpm_dt_max_diff) drpm_dt = rpm_dt_max_diff;
-					//partially limit the current between current_rel and 1/tc_level of that
-					float tc_scaling = 1.0/(1.0-(config.tc_level/100.0)); // 100/(100-tc_level) -> 1/(1-tc_level/100)
-					current_rel = utils_map(drpm_dt, rpm_dt_thresold_diff, rpm_dt_max_diff, current_rel, current_rel/tc_scaling);
-					current_out = current_rel;
-				}
-				// Traction control - rpm difference - only multi esc
-				// TC based on rpm difference between esc
+				// Traction control - rpm difference and slip ratio (multi-esc)
 				if (config.multi_esc) {
 					for (int i = 0;i < CAN_STATUS_MSGS_TO_STORE;i++) {
 						can_status_msg *msg = comm_can_get_status_msg_index(i);
@@ -623,11 +605,32 @@ static THD_FUNCTION(adc_thread, arg) {
 								if (is_reverse) {
 									rpm_tmp = -rpm_tmp;
 								}
-
-								float diff = rpm_tmp - rpm_lowest;
-                                if (diff < TC_DIFF_MAX_PASS) diff = 0;
-                                if (diff > config.tc_max_diff) diff = config.tc_max_diff;
-								current_out = utils_map(diff, 0.0, config.tc_max_diff, current_rel, 0.0);
+								/// LIMITED SLIP DIFFERENTIAL
+								float current_rel1 = current_rel;
+								float current_rel2 = current_rel;
+								if(config.tc_max_diff > TC_DIFF_MAX_PASS){
+									float tc_min_diff = config.tc_max_diff/30;
+									float diff = rpm_tmp - rpm_lowest;
+									if (diff < tc_min_diff){ 
+										diff = tc_min_diff;
+									} else if (diff > config.tc_max_diff){
+										diff = config.tc_max_diff;					
+									}
+									current_rel1 = utils_map(diff, tc_min_diff, config.tc_max_diff, current_rel, 0.0);
+								}
+								// LIMITED SLIP RATIO
+								if(config.tc_slip_thresold < 90.0){
+									float slip_thresold = config.tc_slip_thresold/100.0;
+									float slip_ratio = (rpm_tmp/rpm_lowest)-1;
+									if(slip_ratio > 1.0){
+										slip_ratio = 1.0;
+									}
+									if(slip_ratio < slip_thresold){
+										slip_ratio = slip_thresold;
+									}
+									current_rel2 = utils_map(slip_ratio, slip_thresold, 1.0, current_rel, 0.0);
+								}
+								current_out = utils_min_abs(current_rel1, current_rel2);
 							}
 
 							if (is_reverse) {
@@ -639,10 +642,32 @@ static THD_FUNCTION(adc_thread, arg) {
 					}
 
 					if (config.tc) {
-						float diff = rpm_local - rpm_lowest;
-                        if (diff < TC_DIFF_MAX_PASS) diff = 0;
-                        if (diff > config.tc_max_diff) diff = config.tc_max_diff;
-						current_out = utils_map(diff, 0.0, config.tc_max_diff, current_rel, 0.0);
+						/// LIMITED SLIP DIFFERENTIAL
+						float current_rel1 = current_rel;
+						float current_rel2 = current_rel;
+						if(config.tc_max_diff > TC_DIFF_MAX_PASS){
+							float tc_min_diff = config.tc_max_diff/30;
+							float diff = rpm_local - rpm_lowest;
+							if (diff < tc_min_diff){ 
+								diff = tc_min_diff;
+							} else if (diff > config.tc_max_diff){
+								diff = config.tc_max_diff;					
+							}
+							current_rel1 = utils_map(diff, tc_min_diff, config.tc_max_diff, current_rel, 0.0);
+						}
+						// LIMITED SLIP RATIO
+						if(config.tc_slip_thresold < 90.0){
+							float slip_thresold = config.tc_slip_thresold/100.0;
+							float slip_ratio = (rpm_local/rpm_lowest)-1;
+							if(slip_ratio > 1.0){
+								slip_ratio = 1.0;
+							}
+							if(slip_ratio < slip_thresold){
+								slip_ratio = slip_thresold;
+							}
+							current_rel2 = utils_map(slip_ratio, slip_thresold, 1.0, current_rel, 0.0);
+						}
+						current_out = utils_min_abs(current_rel1, current_rel2);
 					}
 				}
 

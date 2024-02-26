@@ -218,12 +218,6 @@
 #ifndef APPCONF_ADC_UPDATE_RATE_HZ
 #define APPCONF_ADC_UPDATE_RATE_HZ			500
 #endif
-#ifndef APPCONF_ADC_TC_MAX_RPM_RATE
-#define APPCONF_ADC_TC_MAX_RPM_RATE			0.0
-#endif
-#ifndef APPCONF_ADC_TC_LEVEL
-#define APPCONF_ADC_TC_LEVEL			    0.0
-#endif
 #ifndef ADVANCED_TC_THRESOLD_FACTOR
 #define ADVANCED_TC_THRESOLD_FACTOR         4.0 //Traction control thresold = max_tc_rpm/factor
 #endif

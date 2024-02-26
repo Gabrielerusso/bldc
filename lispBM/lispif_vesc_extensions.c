@@ -218,6 +218,7 @@ typedef struct {
 	lbm_uint adc_v1_max;
 	lbm_uint pas_current_scaling;
 	lbm_uint tc_status;
+	lbm_uint tc_slip_thresold;
 	lbm_uint max_erpm_rate;
 
 	// Sysinfo
@@ -554,6 +555,8 @@ static bool compare_symbol(lbm_uint sym, lbm_uint *comp) {
 			lbm_add_symbol_const("pas-current-scaling", comp);
 		} else if (comp == &syms_vesc.tc_status) {
 			lbm_add_symbol_const("tc-status", comp);
+		} else if (comp == &syms_vesc.tc_slip_thresold) {
+			lbm_add_symbol_const("tc-slip-thresold", comp);
 		} else if (comp == &syms_vesc.max_erpm_rate) {
 			lbm_add_symbol_const("max-rpm-rate", comp);
 		}
@@ -3583,6 +3586,9 @@ static lbm_value ext_conf_set(lbm_value *args, lbm_uint argn) {
 		} else if (compare_symbol(name, &syms_vesc.pas_current_scaling)) {
 			appconf->app_pas_conf.current_scaling = lbm_dec_as_float(args[1]);
 			changed_app = 2;
+		} else if (compare_symbol(name, &syms_vesc.tc_slip_thresold)) {
+			appconf->app_adc_conf.tc_slip_thresold = lbm_dec_as_float(args[1]);
+			changed_app = 2;
 		} else if (compare_symbol(name, &syms_vesc.tc_status)) {
 			appconf->app_adc_conf.tc = (lbm_dec_as_char(args[1]) > 0);
 			changed_app = 2;
@@ -3900,6 +3906,8 @@ static lbm_value ext_conf_get(lbm_value *args, lbm_uint argn) {
 		res = lbm_enc_float(appconf->app_pas_conf.current_scaling);
 	} else if (compare_symbol(name, &syms_vesc.tc_status)) {
 		res = lbm_enc_float(appconf->app_adc_conf.tc);
+	} else if (compare_symbol(name, &syms_vesc.tc_slip_thresold)) {
+		res = lbm_enc_float(appconf->app_adc_conf.tc_slip_thresold);
 	}
 
 	if (defaultcfg) {

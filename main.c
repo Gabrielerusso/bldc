@@ -47,6 +47,10 @@
 #include "timer.h"
 #include "imu.h"
 #include "flash_helper.h"
+#include "conf_custom.h"
+#include "crc.h"
+#include "qmlui.h"
+
 #if HAS_BLACKMAGIC
 #include "bm_if.h"
 #endif
@@ -54,9 +58,9 @@
 #include "mempools.h"
 #include "events.h"
 #include "main.h"
+
 #ifdef CAN_ENABLE
 #include "comm_can.h"
-
 #define CAN_FRAME_MAX_PL_SIZE	8
 #endif
 
@@ -215,6 +219,31 @@ bool main_init_done(void) {
 	return m_init_done;
 }
 
+uint32_t main_calc_hw_crc(void) {
+	uint32_t crc = 0;
+
+#ifdef QMLUI_SOURCE_HW
+	crc = crc32_with_init(data_qml_hw, DATA_QML_HW_SIZE, crc);
+#endif
+
+	for (int i = 0;i < conf_custom_cfg_num();i++) {
+		uint8_t *data = 0;
+		int len = conf_custom_get_cfg_xml(i, &data);
+		if (len > 0) {
+			crc = crc32_with_init(data, len, crc);
+		}
+	}
+
+	if (flash_helper_code_size(CODE_IND_QML) > 0) {
+		crc = crc32_with_init(
+				flash_helper_code_data(CODE_IND_QML),
+				flash_helper_code_size(CODE_IND_QML),
+				crc);
+	}
+
+	return crc;
+}
+
 int main(void) {
 	halInit();
 	chSysInit();
@@ -237,11 +266,11 @@ int main(void) {
 
 	mempools_init();
 	events_init();
+	timer_init(); // Initialize timer here to allow I2C in hw_init
 	hw_init_gpio();
 	LED_RED_OFF();
 	LED_GREEN_OFF();
 
-	timer_init();
 	conf_general_init();
 
 	if (flash_helper_verify_flash_memory() == FAULT_CODE_FLASH_CORRUPTION)	{

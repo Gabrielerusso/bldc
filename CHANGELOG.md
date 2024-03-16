@@ -35,6 +35,7 @@
 	* Built-in sort function that is much faster and can sort much larger lists.
 	* Added foc-play-tone and foc-play-stop.
 	* Added foc-play-samples.
+	* Added can-msg-age.
 * Hall sensors improvements:
 	* Smooth transition to sensorless.
 	* Bug fix in interpolation.
@@ -51,6 +52,7 @@
 * Added FOC interpolation mode.
 * Allow passive flux linkage measurement.
 * Fixed some braking glitches.
+* Configurable HFI error truncation to reject noise.
 
 ### 6.02
 #### 2023-03-12

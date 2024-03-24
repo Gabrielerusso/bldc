@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
-#ifndef HW_BR_85_200_V2_no_limits_H_
-#define HW_BR_85_200_V2_no_limits_H_ 
+#ifndef HW_BR_100_200_no_limits_H_ 
+#define HW_BR_100_200_no_limits_H_ 
 
-#define HW_NAME					"BRIESC_85_200_V2_no_limits"
+#define HW_NAME					"BRIESC_100_200_V2_no_limits"
 
 
 // HW properties
@@ -128,7 +128,7 @@
 #define V_REG					3.30
 #endif
 #ifndef VIN_R1
-#define VIN_R1					56000.0
+#define VIN_R1					64000.0
 #endif
 #ifndef VIN_R2
 #define VIN_R2					2200.0

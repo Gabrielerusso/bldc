@@ -26,6 +26,7 @@
 
 // Variables
 static volatile bool i2c_running = false;
+static mutex_t shutdown_mutex;
 
 // I2C configuration
 static const I2CConfig i2cfg = {
@@ -38,6 +39,8 @@ static const I2CConfig i2cfg = {
 static void terminal_shutdown_now(int argc, const char **argv);
 
 void hw_init_gpio(void) {
+	chMtxObjectInit(&shutdown_mutex);
+
 	// GPIO clock enable
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
@@ -72,7 +75,7 @@ void hw_init_gpio(void) {
 			PAL_STM32_PUDR_FLOATING);
 	
 	//SHUTDOWN INPUT PIN
-	palSetPadMode(HW_SHUTDOWN_IN_GPIO, HW_SHUTDOWN_IN_PIN, PAL_MODE_INPUT);
+	palSetPadMode(HW_SHUTDOWN_IN_GPIO, HW_SHUTDOWN_IN_PIN, PAL_MODE_INPUT_PULLDOWN);
 
 	// Hall sensors
 	palSetPadMode(HW_HALL_ENC_GPIO1, HW_HALL_ENC_PIN1, PAL_MODE_INPUT_PULLUP);
@@ -282,6 +285,25 @@ static void terminal_shutdown_now(int argc, const char **argv) {
 
 bool hw_sample_shutdown_button(void) {
 	bool shutdown_pin_read = 0;
+	static bool shutdown_pin_status = 0;
+	static uint8_t press_counter = 199;
+
+	chMtxLock(&shutdown_mutex);
 	shutdown_pin_read = palReadPad(HW_SHUTDOWN_IN_GPIO, HW_SHUTDOWN_IN_PIN);
-	return (shutdown_pin_read);
+
+	//avoid false reading, read only push longer than 2s
+	if(shutdown_pin_read == 1 && press_counter < 255){
+		press_counter ++;
+	} else if(shutdown_pin_read == 0 && press_counter > 0){
+		press_counter --;
+	}
+
+	if(press_counter >= 200){
+		shutdown_pin_status = 1;
+	} else if(press_counter == 0){
+		shutdown_pin_status = 0;
+	}
+	chMtxUnlock(&shutdown_mutex);
+
+	return shutdown_pin_status;
 }

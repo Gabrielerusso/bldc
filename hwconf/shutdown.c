@@ -90,7 +90,7 @@ bool do_shutdown(bool resample) {
 	if (resample) {
 		chMtxLock(&m_sample_mutex);
 		if (!m_sampling_disabled) {
-			disable_gates = HW_SAMPLE_SHUTDOWN();
+			disable_gates = !HW_SAMPLE_SHUTDOWN();
 		}
 		chMtxUnlock(&m_sample_mutex);
 	}
@@ -136,7 +136,7 @@ static THD_FUNCTION(shutdown_thread, arg) {
 
 		switch (conf->shutdown_mode) {
 		case SHUTDOWN_MODE_ALWAYS_OFF:
-			if (m_button_pressed) {
+			if (!m_button_pressed) {
 				gates_disabled_here = do_shutdown(true);
 			}
 			break;
@@ -166,7 +166,7 @@ static THD_FUNCTION(shutdown_thread, arg) {
 
 		// If disabling the gates did not shut the VESC down within
 		// 2 seconds, enable the gates again.
-		if (gates_disabled_here && m_button_pressed) {
+		if (gates_disabled_here && !m_button_pressed) {
 			gate_disable_time += dt;
 
 			if (gate_disable_time > 2.0) {
@@ -191,7 +191,7 @@ static THD_FUNCTION(shutdown_thread, arg) {
 			default: break;
 			}
 
-			if (m_inactivity_time >= shutdown_timeout && m_button_pressed) {
+			if (m_inactivity_time >= shutdown_timeout && !m_button_pressed) {
 				gates_disabled_here = do_shutdown(false);
 			}
 		}

@@ -28,8 +28,6 @@
 #define HW_HAS_PHASE_FILTERS
 //#define HW_HAS_CURRENT_FILTER
 
-#define HW_HAS_BRIERU_POWERSWITCH
-
 // Macros
 
 #define LED_GREEN_GPIO			GPIOB

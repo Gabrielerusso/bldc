@@ -5122,6 +5122,16 @@ static lbm_value ext_shutdown_hold(lbm_value *args, lbm_uint argn) {
 	return ENC_SYM_TRUE;
 }
 
+static lbm_value ext_shutdown_system(lbm_value *args, lbm_uint argn) {
+	if (fabsf(mc_interface_get_rpm()) > 100) {
+		// Don't allow shutdown/restart while riding, unless force == 1
+		return ENC_SYM_TRUE;
+	}
+	
+	do_shutdown(false);
+
+	return ENC_SYM_TRUE;
+}
 
 // Remote Messages
 
@@ -5314,6 +5324,7 @@ void lispif_load_vesc_extensions(void) {
 	lbm_add_extension("crc32", ext_crc32);
 	lbm_add_extension("buf-resize", ext_buf_resize);
 	lbm_add_extension("shutdown-hold", ext_shutdown_hold);
+	lbm_add_extension("shutdown-system", ext_shutdown_system);
 
 	// APP commands
 	lbm_add_extension("app-adc-detach", ext_app_adc_detach);

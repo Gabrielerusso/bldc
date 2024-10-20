@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
-#ifndef HW_BR_100_200_H_
-#define HW_BR_100_200_H_ 
+#ifndef HW_BRIESCONE_H_ 
+#define HW_BRIESCONE_H_ 
 
-#define HW_NAME					"BRIESC_100_200_V2"
+#define HW_NAME					"BRIESCONE"
 
 
 // HW properties
@@ -32,6 +32,7 @@
 // Macros
 #define LED_RED_GPIO			GPIOB
 #define LED_RED_PIN				7
+
 
 #define LED_GREEN_ON()			false
 #define LED_GREEN_OFF()			false
@@ -136,7 +137,7 @@
 #define CURRENT_AMP_GAIN		20.0
 #endif
 #ifndef CURRENT_SHUNT_RES
-#define CURRENT_SHUNT_RES		(0.0005/4)
+#define CURRENT_SHUNT_RES		(0.0005/8)
 #endif
 
 // Input voltage
@@ -146,7 +147,7 @@
 #define NTC_RES(adc_val)		((4095.0 * 10000.0) / adc_val - 10000.0)
 #define NTC_TEMP(adc_ind)		briesc_get_temp()
 
-#define NTC_RES_MOTOR(adc_val)	(10000.0 / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
+#define NTC_RES_MOTOR(adc_val)	(1000.0 / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
 
 #define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000.0) / beta) + (1.0 / 298.15)) - 273.15)
 
@@ -266,31 +267,31 @@
 #define MCCONF_L_MAX_VOLTAGE			85.0	// Maximum input voltage
 #define MCCONF_DEFAULT_MOTOR_TYPE		MOTOR_TYPE_FOC
 #define MCCONF_FOC_F_ZV					30000.0
-#define MCCONF_L_MAX_ABS_CURRENT		300.0	// The maximum absolute current above which a fault is generated
+#define MCCONF_L_MAX_ABS_CURRENT		100.0	// The maximum absolute current above which a fault is generated
 #define MCCONF_FOC_SAMPLE_V0_V7			FOC_CONTROL_SAMPLE_MODE_V0_V7_INTERPOL	// Run control loop
-#define MCCONF_L_IN_CURRENT_MAX			60.0	// Input current limit in Amperes (Upper)
-#define MCCONF_L_IN_CURRENT_MIN			-10.0	// Input current limit in Amperes (Lower)
+#define MCCONF_L_IN_CURRENT_MAX			0.0	// Input current limit in Amperes (Upper)
+#define MCCONF_L_IN_CURRENT_MIN			-0.0	// Input current limit in Amperes (Lower)
 #define MCCONF_FOC_CURRENT_FILTER_CONST	0.8		// Filter constant for the filtered currents
 #define MCCONF_FOC_TEMP_COMP			false	// Motor temperature compensation
 #define MCCONF_FOC_TEMP_COMP_BASE_TEMP	25.0	// Motor temperature compensation base temperature
 #define MCCONF_M_NTC_MOTOR_BETA			3435.0 // Beta value for motor termistor
-#define MCCONF_L_LIM_TEMP_FET_START     70      // MOSFET Temp Cutoff Start
-#define MCCONF_L_LIM_TEMP_FET_END       85      // MOSFET Temp Cutoff End
+#define MCCONF_L_LIM_TEMP_FET_START     65      // MOSFET Temp Cutoff Start
+#define MCCONF_L_LIM_TEMP_FET_END       75      // MOSFET Temp Cutoff End
 #define MCCONF_FOC_SAT_COMP_MODE		SAT_COMP_DISABLED		// Stator saturation compensation mode
 #define MCCONF_FOC_CC_DECOUPLING		FOC_CC_DECOUPLING_DISABLED // Current controller decoupling
 #define MCCONF_FOC_OBSERVER_TYPE		FOC_OBSERVER_MXLEMMING // Position observer type for FOC
 #define MCCONF_FOC_CURRENT_SAMPLE_MODE	FOC_CURRENT_SAMPLE_MODE_ALL_SENSORS
-#define MCCONF_FOC_DT_US				0.1 // Microseconds for dead time compensation
+#define MCCONF_FOC_DT_US				0.170 // Microseconds for dead time compensation
 #define MCCONF_M_HALL_EXTRA_SAMPLES		2 // Extra samples for filtering when reading hall sensors
-#define MCCONF_SI_MOTOR_POLES			30 // Motor pole count
+#define MCCONF_SI_MOTOR_POLES			32 // Motor pole count
 #define MCCONF_SI_GEAR_RATIO			1 // Gear ratio
-#define MCCONF_SI_WHEEL_DIAMETER		0.270 // Wheel Diameter
+#define MCCONF_SI_WHEEL_DIAMETER		0.615 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
-//#define MCCONF_MAX_CURRENT_UNBALANCE		130.0	// [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
-#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 50% of the time the motor is unbalanced
+#define MCCONF_MAX_CURRENT_UNBALANCE		450	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
+#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.3		// Fault if more than 30% of the time the motor is unbalanced
 
 // APP OVERRIDE
-#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_10S
+#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_1M
 #define APPCONF_CAN_STATUS_RATE_1			100
 #define APPCONF_CAN_STATUS_RATE_2			10
 #define APPCONF_ADC_HYST					0.05
@@ -298,22 +299,22 @@
 #define APPCONF_ADC_VOLTAGE_MAX				3.4
 #define APPCONF_ADC_TC_MAX_DIFF				4000.0
 #define APPCONF_ADC_UPDATE_RATE_HZ			100
-#define APPCONF_PPM_THROTTLE_EXP			-0.25
-#define APPCONF_PPM_THROTTLE_EXP_BRAKE		-0.25
+#define APPCONF_PPM_THROTTLE_EXP			0.0
+#define APPCONF_PPM_THROTTLE_EXP_BRAKE		0.0
 #define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
-#define HW_LIM_CURRENT			-350.0, 350.0
-#define HW_LIM_CURRENT_IN		-200.0, 200.0
-#define HW_LIM_CURRENT_ABS		0.0, 450.0
-#define HW_LIM_VIN				25.0, 96.0
+#define HW_LIM_CURRENT			-1000.0, 1000.0
+#define HW_LIM_CURRENT_IN		-350.0, 350.0
+#define HW_LIM_CURRENT_ABS		0.0, 1200.0
+#define HW_LIM_VIN				25.0, 85.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1
 #define HW_LIM_DUTY_MAX			0.0, 0.96
-#define HW_LIM_TEMP_FET			-30.0, 85.0
+#define HW_LIM_TEMP_FET			-30.0, 80.0
 
 // HW-specific functions
 float briesc_get_temp(void);
 bool hw_sample_shutdown_button(void);
 
-#endif /* HW_BR_100_200_H_ */
+#endif /* HW_BRIESCONE_H_ */

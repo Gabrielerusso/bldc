@@ -287,7 +287,7 @@
 #define MCCONF_SI_GEAR_RATIO			1 // Gear ratio
 #define MCCONF_SI_WHEEL_DIAMETER		0.270 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
-#define MCCONF_MAX_CURRENT_UNBALANCE		250	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
+#define MCCONF_MAX_CURRENT_UNBALANCE		300	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
 #define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 50% of the time the motor is unbalanced
 
 // APP OVERRIDE

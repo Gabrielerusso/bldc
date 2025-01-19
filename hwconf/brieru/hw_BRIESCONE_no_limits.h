@@ -31,7 +31,7 @@
 
 // Macros
 #define LED_RED_GPIO			GPIOB
-#define LED_RED_PIN				7
+#define LED_RED_PIN				4
 
 
 #define LED_GREEN_ON()			false
@@ -51,7 +51,7 @@
 #define AUX_OFF()				palClearPad(AUX_GPIO, AUX_PIN)
 
 #define AUX2_GPIO				GPIOB
-#define AUX2_PIN				4
+#define AUX2_PIN				7
 #define AUX2_ON()				palSetPad(AUX2_GPIO, AUX2_PIN)
 #define AUX2_OFF()				palClearPad(AUX2_GPIO, AUX2_PIN)
 
@@ -80,24 +80,24 @@
 /*
  * ADC Vector
  *
- * 0  (1):	IN0		SENS1       -> SENS3
- * 1  (2):	IN1		SENS2       
- * 2  (3):	IN2		SENS3       -> SENS1
- * 3  (1):	IN10	CURR1
- * 4  (2):	IN11	CURR2
- * 5  (3):	IN12	CURR3
- * 6  (1):	IN5		ADC_EXT1
- * 7  (2):	IN6		ADC_EXT2    
- * 8  (3):	IN3		TEMP_MOS    -> UNUSED
- * 9  (1):	IN14	TEMP_MOTOR  -> TEMP_MOS
- * 10 (2):	IN15	ADC_EXT3    -> TEMP_MOS2
- * 11 (3):	IN13	AN_IN
+ * 0  (1):	IN0		SENS1       -> SENS3            PA0
+ * 1  (2):	IN1		SENS2                           PA1
+ * 2  (3):	IN2		SENS3       -> SENS1            PA2
+ * 3  (1):	IN10	CURR1                           PC0
+ * 4  (2):	IN11	CURR2                           PC1
+ * 5  (3):	IN12	CURR3                           PC2
+ * 6  (1):	IN5		ADC_EXT1                        PA5
+ * 7  (2):	IN6		ADC_EXT2                        PA6
+ * 8  (3):	IN3		TEMP_MOS    -> UNUSED           PA3  //will be AN_IN
+ * 9  (1):	IN14	TEMP_MOTOR  -> TEMP_MOS         PC4
+ * 10 (2):	IN15	ADC_EXT3    -> TEMP_MOS2        PC5
+ * 11 (3):	IN13	AN_IN                           PC3
  * 12 (1):	Vrefint
- * 13 (2):	IN0		SENS1
- * 14 (3):	IN1		SENS2
- * 15 (1):  IN8		TEMP_MOS_2  -> TEMP_MOTOR
- * 16 (2):  IN9		TEMP_MOS_3  -> UNUSED
- * 17 (3):  IN3		SENS3
+ * 13 (2):	IN0		SENS1                           PA0
+ * 14 (3):	IN1		SENS2                           PA1
+ * 15 (1):  IN8		TEMP_MOS_2  -> TEMP_MOTOR       PB0
+ * 16 (2):  IN9		TEMP_MOS_3  -> UNUSED           PB1  //will be TEMP_MOS_3
+ * 17 (3):  IN3		SENS3                           PA3
  */
 
 #define HW_ADC_CHANNELS			18
@@ -108,16 +108,16 @@
 #define ADC_IND_SENS1			2
 #define ADC_IND_SENS2			1
 #define ADC_IND_SENS3			0
-#define ADC_IND_CURR1			3
+#define ADC_IND_CURR1			5
 #define ADC_IND_CURR2			4
-#define ADC_IND_CURR3			5
-#define ADC_IND_VIN_SENS		11
+#define ADC_IND_CURR3			3
+#define ADC_IND_VIN_SENS		8
 #define ADC_IND_EXT				6
 #define ADC_IND_EXT2			7
-#define ADC_IND_EXT3			10
+#define ADC_IND_EXT3			11
 #define ADC_IND_TEMP_MOS		9   //8
 #define ADC_IND_TEMP_MOS_2		10  //15
-//#define ADC_IND_TEMP_MOS_3		10  //16
+#define ADC_IND_TEMP_MOS_3		16  //16
 #define ADC_IND_TEMP_MOTOR		15  //9
 #define ADC_IND_VREFINT			12
 
@@ -128,7 +128,7 @@
 #define V_REG					3.30
 #endif
 #ifndef VIN_R1
-#define VIN_R1					64000.0
+#define VIN_R1					64900.0
 #endif
 #ifndef VIN_R2
 #define VIN_R2					2200.0
@@ -147,12 +147,16 @@
 #define NTC_RES(adc_val)		((4095.0 * 10000.0) / adc_val - 10000.0)
 #define NTC_TEMP(adc_ind)		briesc_get_temp()
 
-#define NTC_RES_MOTOR(adc_val)	(1000.0 / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
+#define MOTOR_V_DIVIDER_R 1000.0
+#define MOTOR_TEMP_LPF 0.001
 
-#define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000.0) / beta) + (1.0 / 298.15)) - 273.15)
+#define NTC_RES_MOTOR(adc_val)	(MOTOR_V_DIVIDER_R / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
+
+#define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / MOTOR_V_DIVIDER_R) / beta) + (1.0 / 298.15)) - 273.15)
 
 #define NTC_TEMP_MOS1()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
 #define NTC_TEMP_MOS2()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
+#define NTC_TEMP_MOS3()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_3]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
 
 // Voltage on ADC channel
 #define ADC_VOLTS(ch)			((float)ADC_Value[ch] / 4096.0 * V_REG)
@@ -288,10 +292,10 @@
 #define MCCONF_SI_WHEEL_DIAMETER		0.615 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
 #define MCCONF_MAX_CURRENT_UNBALANCE		450	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
-#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.3		// Fault if more than 30% of the time the motor is unbalanced
+#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 50% of the time the motor is unbalanced
 
 // APP OVERRIDE
-#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_1M
+#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_ALWAYS_ON
 #define APPCONF_CAN_STATUS_RATE_1			100
 #define APPCONF_CAN_STATUS_RATE_2			10
 #define APPCONF_ADC_HYST					0.05

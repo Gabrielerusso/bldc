@@ -147,8 +147,8 @@
 #define NTC_TEMP(adc_ind)		briesc_get_temp()
 
 #define NTC_RES_MOTOR(adc_val)	(10000.0 / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
-
 #define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000.0) / beta) + (1.0 / 298.15)) - 273.15)
+#define MOTOR_TEMP_LPF 0.005
 
 #define NTC_TEMP_MOS1()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
 #define NTC_TEMP_MOS2()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
@@ -275,7 +275,7 @@
 #define MCCONF_FOC_TEMP_COMP_BASE_TEMP	25.0	// Motor temperature compensation base temperature
 #define MCCONF_M_NTC_MOTOR_BETA			3435.0 // Beta value for motor termistor
 #define MCCONF_L_LIM_TEMP_FET_START     70      // MOSFET Temp Cutoff Start
-#define MCCONF_L_LIM_TEMP_FET_END       85      // MOSFET Temp Cutoff End
+#define MCCONF_L_LIM_TEMP_FET_END       80      // MOSFET Temp Cutoff End
 #define MCCONF_FOC_SAT_COMP_MODE		SAT_COMP_DISABLED		// Stator saturation compensation mode
 #define MCCONF_FOC_CC_DECOUPLING		FOC_CC_DECOUPLING_DISABLED // Current controller decoupling
 #define MCCONF_FOC_OBSERVER_TYPE		FOC_OBSERVER_MXLEMMING // Position observer type for FOC
@@ -303,9 +303,9 @@
 #define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
-#define HW_LIM_CURRENT			-350.0, 350.0
-#define HW_LIM_CURRENT_IN		-200.0, 200.0
-#define HW_LIM_CURRENT_ABS		0.0, 450.0
+#define HW_LIM_CURRENT			-250.0, 250.0
+#define HW_LIM_CURRENT_IN		-120.0, 120.0
+#define HW_LIM_CURRENT_ABS		0.0, 375.0
 #define HW_LIM_VIN				25.0, 96.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1

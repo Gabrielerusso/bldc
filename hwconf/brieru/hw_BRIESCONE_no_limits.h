@@ -152,7 +152,7 @@
 
 #define NTC_RES_MOTOR(adc_val)	(MOTOR_V_DIVIDER_R / ((4095.0 / (float)adc_val) - 1.0)) // Motor temp sensor on low side
 
-#define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / MOTOR_V_DIVIDER_R) / beta) + (1.0 / 298.15)) - 273.15)
+#define NTC_TEMP_MOTOR(beta)	    (1.0 / ((logf(NTC_RES_MOTOR(ADC_Value[ADC_IND_TEMP_MOTOR]) / 10000) / beta) + (1.0 / 298.15)) - 273.15)
 
 #define NTC_TEMP_MOS1()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
 #define NTC_TEMP_MOS2()			    (1.0 / ((logf(NTC_RES(ADC_Value[ADC_IND_TEMP_MOS_2]) / 10000.0) / 3435.0) + (1.0 / 298.15)) - 273.15)
@@ -291,8 +291,8 @@
 #define MCCONF_SI_GEAR_RATIO			1 // Gear ratio
 #define MCCONF_SI_WHEEL_DIAMETER		0.615 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
-#define MCCONF_MAX_CURRENT_UNBALANCE		450	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
-#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 50% of the time the motor is unbalanced
+//#define MCCONF_MAX_CURRENT_UNBALANCE		450	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
+#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.4		// Fault if more than 50% of the time the motor is unbalanced
 
 // APP OVERRIDE
 #define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_ALWAYS_ON

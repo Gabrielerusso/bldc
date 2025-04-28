@@ -1457,22 +1457,50 @@ static THD_FUNCTION(timer_thread, arg) {
 void mcpwm_adc_inj_int_handler(void) {
 	uint32_t t_start = timer_time_now();
 
-	float curr0 = HW_GET_INJ_CURR1();
-	float curr1 = HW_GET_INJ_CURR2();
+// Phase A (ADC1)
+#if defined(HW_INJECTED_SEQUENCE_AVERAGE) && (HW_ADC_INJ_CHANNELS >= 3)
+    float injected_a1 = HW_GET_INJ_CURR1();
+    float injected_a2 = HW_GET_INJ_CURR1_CH2();
+    float injected_a3 = HW_GET_INJ_CURR1_CH3();
+    float curr0 = (injected_a1 + injected_a2 + injected_a3) / 3.0f;
+#else
+    float curr0 = HW_GET_INJ_CURR1();
+#endif
 
-	float curr0_2 = HW_GET_INJ_CURR1_S2();
-	float curr1_2 = HW_GET_INJ_CURR1_S2();
+// Phase B (ADC2)
+#if defined(HW_INJECTED_SEQUENCE_AVERAGE) && (HW_ADC_INJ_CHANNELS >= 3)
+    float injected_b1 = HW_GET_INJ_CURR2();
+    float injected_b2 = HW_GET_INJ_CURR2_CH2();
+    float injected_b3 = HW_GET_INJ_CURR2_CH3();
+    float curr1 = (injected_b1 + injected_b2 + injected_b3) / 3.0f;
+#else
+    float curr1 = HW_GET_INJ_CURR2();
+#endif
 
 #ifdef HW_HAS_3_SHUNTS
-	float curr2 = HW_GET_INJ_CURR3();
+    // Phase C (ADC3)
+	#if defined(HW_INJECTED_SEQUENCE_AVERAGE) && (HW_ADC_INJ_CHANNELS >= 3)
+        float injected_c1 = HW_GET_INJ_CURR3();
+        float injected_c2 = HW_GET_INJ_CURR3_CH2();
+        float injected_c3 = HW_GET_INJ_CURR3_CH3();
+        float curr2 = (injected_c1 + injected_c2 + injected_c3) / 3.0f;
+    #else
+        float curr2 = HW_GET_INJ_CURR3();
+    #endif
+#endif
+
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
+	float curr0_2 = HW_GET_INJ_CURR1_S2();
+	float curr1_2 = HW_GET_INJ_CURR1_S2();
 #endif
 
 #ifdef INVERTED_SHUNT_POLARITY
 	curr0 = 4095 - curr0;
 	curr1 = 4095 - curr1;
-
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
 	curr0_2 = 4095 - curr0_2;
 	curr1_2 = 4095 - curr1_2;
+#endif
 #ifdef HW_HAS_3_SHUNTS
 	curr2 = 4095 - curr2;
 #endif
@@ -1523,8 +1551,10 @@ void mcpwm_adc_inj_int_handler(void) {
 	curr1_currsamp -= curr1_offset;
 	curr0 -= curr0_offset;
 	curr1 -= curr1_offset;
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
 	curr0_2 -= curr0_offset;
 	curr1_2 -= curr1_offset;
+#endif
 
 #ifdef HW_HAS_3_SHUNTS
 	curr2_currsamp -= curr2_offset;

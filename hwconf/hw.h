@@ -718,6 +718,28 @@
 #ifndef HW_GET_INJ_CURR2_S2
 #define HW_GET_INJ_CURR2_S2()	ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2)
 #endif
+// Macros for back-to-back injected ADC samples:
+// These correspond to the 2nd and 3rd conversions in the injected sequence (ranks 2 and 3).
+#ifndef HW_GET_INJ_CURR1_CH2
+#define HW_GET_INJ_CURR1_CH2()  ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_2)
+#endif
+#ifndef HW_GET_INJ_CURR2_CH2
+#define HW_GET_INJ_CURR2_CH2()  ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_2)
+#endif
+#ifndef HW_GET_INJ_CURR3_CH2
+#define HW_GET_INJ_CURR3_CH2()  ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_2)
+#endif
+
+#ifndef HW_GET_INJ_CURR1_CH3
+#define HW_GET_INJ_CURR1_CH3()  ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_3)
+#endif
+#ifndef HW_GET_INJ_CURR2_CH3
+#define HW_GET_INJ_CURR2_CH3()  ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_3)
+#endif
+#ifndef HW_GET_INJ_CURR3_CH3
+#define HW_GET_INJ_CURR3_CH3()  ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_3)
+#endif
+
 
 // Functions
 void hw_init_gpio(void);

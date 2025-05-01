@@ -246,6 +246,12 @@
 #define HW_SPI_PORT_MISO		GPIOA
 #define HW_SPI_PIN_MISO			6
 
+// Lisp custom pins
+#define PIN_HW_1_GPIO 	AUX_GPIO
+#define PIN_HW_1 		AUX_PIN
+#define PIN_HW_2_GPIO 	AUX2_GPIO
+#define PIN_HW_2 		AUX2_PIN
+
 // PAS sensor
 //#define HW_PAS1_PORT HW_ICU_GPIO
 //#define HW_PAS1_PIN HW_ICU_PIN

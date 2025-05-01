@@ -25,10 +25,14 @@
 // HW properties
 #define HW_HAS_3_SHUNTS
 #define INVERTED_SHUNT_POLARITY
+#define CUSTOM_ADC_CURRENT_MEASUREMENT
 //#define HW_HAS_PHASE_SHUNTS
 #define HW_HAS_PHASE_FILTERS
 //#define HW_HAS_CURRENT_FILTER
 #define HW_INJECTED_SEQUENCE_AVERAGE
+
+// Execute FOC loop once every "FOC_CONTROL_LOOP_FREQ_DIVIDER" ADC ISR calls
+#define FOC_CONTROL_LOOP_FREQ_DIVIDER	1
 
 // Macros
 #define LED_RED_GPIO			GPIOB
@@ -81,29 +85,35 @@
 /*
  * ADC Vector
  *
- * 0  (1):	IN0		SENS1       -> SENS3            PA0
+ * 0  (1):	IN0		SENS3                           PA0
  * 1  (2):	IN1		SENS2                           PA1
- * 2  (3):	IN2		SENS3       -> SENS1            PA2
- * 3  (1):	IN10	CURR1                           PC0
+ * 2  (3):	IN2		SENS1                           PA2
+ * 3  (1):	IN10	CURR3                           PC0
  * 4  (2):	IN11	CURR2                           PC1
- * 5  (3):	IN12	CURR3                           PC2
- * 6  (1):	IN5		ADC_EXT1                        PA5
- * 7  (2):	IN6		ADC_EXT2                        PA6
- * 8  (3):	IN3		TEMP_MOS    -> UNUSED           PA3  //will be AN_IN
- * 9  (1):	IN14	TEMP_MOTOR  -> TEMP_MOS         PC4
- * 10 (2):	IN15	ADC_EXT3    -> TEMP_MOS2        PC5
- * 11 (3):	IN13	AN_IN                           PC3
- * 12 (1):	Vrefint
- * 13 (2):	IN0		SENS1                           PA0
- * 14 (3):	IN1		SENS2                           PA1
- * 15 (1):  IN8		TEMP_MOS_2  -> TEMP_MOTOR       PB0
- * 16 (2):  IN9		TEMP_MOS_3  -> UNUSED           PB1  //will be TEMP_MOS_3
- * 17 (3):  IN3		SENS3                           PA3
+ * 5  (3):	IN12	CURR1                           PC2
+ * 6  (1):	IN10	CURR3_2                         PC0
+ * 7  (2):	IN11	CURR2_2                         PC1
+ * 8  (3):	IN12	CURR1_2                         PC2
+ * 9  (1):	IN10	CURR3_3                         PC0
+ * 10 (2):	IN11	CURR2_3                         PC1
+ * 11 (3):	IN12	CURR1_3                         PC2
+ * 12 (1):	IN0		SENS3_2                         PA0
+ * 13 (2):	IN1		SENS2_2                         PA1
+ * 14 (3):  IN2		SENS1_2                         PA2 
+ * 15 (1):	IN5		ADC_EXT1                        PA5
+ * 16 (2):	IN6		ADC_EXT2                        PA6
+ * 17 (3):	IN3		VIN_SENS                        PA3
+ * 18 (1):	IN14	TEMP_MOS                        PC4
+ * 19 (2):	IN15	TEMP_MOS_2                      PC5
+ * 20 (3):  IN9		TEMP_MOS_3                      PB1
+ * 21 (1):	Vrefint
+ * 22 (2):  IN8		TEMP_MOTOR                      PB0
+ * 23 (3):	IN13	AN_IN                           PC3
  */
 
-#define HW_ADC_CHANNELS			18
+#define HW_ADC_CHANNELS			24
 #define HW_ADC_INJ_CHANNELS		3
-#define HW_ADC_NBR_CONV			6
+#define HW_ADC_NBR_CONV			8
 
 // ADC Indexes
 #define ADC_IND_SENS1			2
@@ -112,15 +122,25 @@
 #define ADC_IND_CURR1			5
 #define ADC_IND_CURR2			4
 #define ADC_IND_CURR3			3
-#define ADC_IND_VIN_SENS		8
-#define ADC_IND_EXT				6
-#define ADC_IND_EXT2			7
-#define ADC_IND_EXT3			11
-#define ADC_IND_TEMP_MOS		9   //8
-#define ADC_IND_TEMP_MOS_2		10  //15
-#define ADC_IND_TEMP_MOS_3		16  //16
-#define ADC_IND_TEMP_MOTOR		15  //9
-#define ADC_IND_VREFINT			12
+#define ADC_IND_CURR1_2			8
+#define ADC_IND_CURR2_2			7
+#define ADC_IND_CURR3_2			6
+#define ADC_IND_CURR1_3			11
+#define ADC_IND_CURR2_3			10
+#define ADC_IND_CURR3_3			9
+#define ADC_IND_SENS1_2			14
+#define ADC_IND_SENS2_2			13
+#define ADC_IND_SENS3_2			12
+#define ADC_IND_EXT				15
+#define ADC_IND_EXT2			16
+#define ADC_IND_VIN_SENS		17
+#define ADC_IND_TEMP_MOS		18
+#define ADC_IND_TEMP_MOS_2		19
+#define ADC_IND_TEMP_MOS_3		20
+#define ADC_IND_VREFINT			21
+#define ADC_IND_TEMP_MOTOR		22
+#define ADC_IND_EXT3			23
+
 
 // ADC macros and settings
 
@@ -259,10 +279,19 @@
 //#define HW_PAS2_PIN HW_ICU_PIN
 
 // Measurement macros
-#define ADC_V_L1				ADC_Value[ADC_IND_SENS1]
-#define ADC_V_L2				ADC_Value[ADC_IND_SENS2]
-#define ADC_V_L3				ADC_Value[ADC_IND_SENS3]
-#define ADC_V_ZERO				(ADC_Value[ADC_IND_VIN_SENS] / 2)
+#define ADC_V_L1			(((float)(ADC_Value[ADC_IND_SENS1] + ADC_Value[ADC_IND_SENS1_2]))/2.0)
+#define ADC_V_L2			(((float)(ADC_Value[ADC_IND_SENS2] + ADC_Value[ADC_IND_SENS2_2]))/2.0)
+#define ADC_V_L3			(((float)(ADC_Value[ADC_IND_SENS3] + ADC_Value[ADC_IND_SENS3_2]))/2.0)
+#define ADC_V_ZERO			(ADC_Value[ADC_IND_VIN_SENS] / 2)
+#if defined(CUSTOM_ADC_CURRENT_MEASUREMENT) && defined(INVERTED_SHUNT_POLARITY)
+#define GET_CURRENT1()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR1] + ADC_Value[ADC_IND_CURR1_2] + ADC_Value[ADC_IND_CURR1_3]))/3.0))
+#define GET_CURRENT2()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR2] + ADC_Value[ADC_IND_CURR2_2] + ADC_Value[ADC_IND_CURR2_3]))/3.0))
+#define GET_CURRENT3()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR3] + ADC_Value[ADC_IND_CURR3_2] + ADC_Value[ADC_IND_CURR3_3]))/3.0))
+#elif defined(CUSTOM_ADC_CURRENT_MEASUREMENT)
+#define GET_CURRENT1()		(((float)(ADC_Value[ADC_IND_CURR1] + ADC_Value[ADC_IND_CURR1_2] + ADC_Value[ADC_IND_CURR1_3]))/3.0)
+#define GET_CURRENT2()		(((float)(ADC_Value[ADC_IND_CURR2] + ADC_Value[ADC_IND_CURR2_2] + ADC_Value[ADC_IND_CURR2_3]))/3.0)
+#define GET_CURRENT3()		(((float)(ADC_Value[ADC_IND_CURR3] + ADC_Value[ADC_IND_CURR3_2] + ADC_Value[ADC_IND_CURR3_3]))/3.0)
+#endif
 
 // Macros
 #define READ_HALL1()			palReadPad(HW_HALL_ENC_GPIO1, HW_HALL_ENC_PIN1)

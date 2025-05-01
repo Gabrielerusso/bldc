@@ -25,6 +25,7 @@
 // HW properties
 #define HW_HAS_3_SHUNTS
 #define INVERTED_SHUNT_POLARITY
+#define CUSTOM_ADC_CURRENT_MEASUREMENT
 //#define HW_HAS_PHASE_SHUNTS
 #define HW_HAS_PHASE_FILTERS
 //#define HW_HAS_CURRENT_FILTER
@@ -79,46 +80,57 @@
 /*
  * ADC Vector
  *
- * 0  (1):	IN0		SENS1       -> SENS3
+ * 0  (1):	IN0		SENS3
  * 1  (2):	IN1		SENS2       
- * 2  (3):	IN2		SENS3       -> SENS1
+ * 2  (3):	IN2		SENS1
  * 3  (1):	IN10	CURR1
  * 4  (2):	IN11	CURR2
  * 5  (3):	IN12	CURR3
- * 6  (1):	IN5		ADC_EXT1
- * 7  (2):	IN6		ADC_EXT2    
- * 8  (3):	IN3		TEMP_MOS    -> UNUSED
- * 9  (1):	IN14	TEMP_MOTOR  -> TEMP_MOS
- * 10 (2):	IN15	ADC_EXT3    -> TEMP_MOS2
- * 11 (3):	IN13	AN_IN
- * 12 (1):	Vrefint
- * 13 (2):	IN0		SENS1
- * 14 (3):	IN1		SENS2
- * 15 (1):  IN8		TEMP_MOS_2  -> TEMP_MOTOR
- * 16 (2):  IN9		TEMP_MOS_3  -> UNUSED
- * 17 (3):  IN3		SENS3
+ * 6  (1):	IN10	CURR1_2
+ * 7  (2):	IN11	CURR2_2
+ * 8  (3):	IN12	CURR3_2
+ * 9  (1):	IN10	CURR1_3
+ * 10 (2):	IN11	CURR2_3
+ * 11 (3):	IN12	CURR3_3
+ * 12 (1):	IN5		ADC_EXT1
+ * 13 (2):	IN6		ADC_EXT2    
+ * 14 (3):	IN3		TEMP_MOS    -> UNUSED
+ * 15 (1):	IN14	TEMP_MOTOR  -> TEMP_MOS
+ * 16 (2):	IN15	ADC_EXT3    -> TEMP_MOS2
+ * 17 (3):	IN13	AN_IN
+ * 18 (1):	Vrefint
+ * 19 (2):	IN0		SENS1
+ * 20 (3):	IN1		SENS2
+ * 21 (1):  IN8		TEMP_MOS_2  -> TEMP_MOTOR
+ * 22 (2):  IN9		TEMP_MOS_3  -> UNUSED
+ * 23 (3):  IN3		SENS3
  */
 
-#define HW_ADC_CHANNELS			18
-#define HW_ADC_INJ_CHANNELS		3
-#define HW_ADC_NBR_CONV			6
-
-// ADC Indexes
-#define ADC_IND_SENS1			2
-#define ADC_IND_SENS2			1
-#define ADC_IND_SENS3			0
-#define ADC_IND_CURR1			3
-#define ADC_IND_CURR2			4
-#define ADC_IND_CURR3			5
-#define ADC_IND_VIN_SENS		11
-#define ADC_IND_EXT				6
-#define ADC_IND_EXT2			7
-#define ADC_IND_EXT3			10
-#define ADC_IND_TEMP_MOS		9   //8
-#define ADC_IND_TEMP_MOS_2		10  //15
-//#define ADC_IND_TEMP_MOS_3		10  //16
-#define ADC_IND_TEMP_MOTOR		15  //9
-#define ADC_IND_VREFINT			12
+ #define HW_ADC_CHANNELS			24
+ #define HW_ADC_INJ_CHANNELS		2
+ #define HW_ADC_NBR_CONV			8
+ 
+ // ADC Indexes
+ #define ADC_IND_SENS1			2
+ #define ADC_IND_SENS2			1
+ #define ADC_IND_SENS3			0
+ #define ADC_IND_CURR1			3
+ #define ADC_IND_CURR2			4
+ #define ADC_IND_CURR3			5
+ #define ADC_IND_CURR1_2			6
+ #define ADC_IND_CURR2_2			7
+ #define ADC_IND_CURR3_2			8
+ #define ADC_IND_CURR1_3			9
+ #define ADC_IND_CURR2_3			10
+ #define ADC_IND_CURR3_3			11
+ #define ADC_IND_VIN_SENS		17
+ #define ADC_IND_EXT				12
+ #define ADC_IND_EXT2			13
+ #define ADC_IND_EXT3			16
+ #define ADC_IND_TEMP_MOS		15
+ #define ADC_IND_TEMP_MOS_2		16
+ #define ADC_IND_TEMP_MOTOR		21
+ #define ADC_IND_VREFINT			18
 
 // ADC macros and settings
 
@@ -251,7 +263,15 @@
 #define ADC_V_L2				ADC_Value[ADC_IND_SENS2]
 #define ADC_V_L3				ADC_Value[ADC_IND_SENS3]
 #define ADC_V_ZERO				(ADC_Value[ADC_IND_VIN_SENS] / 2)
-
+#if defined(CUSTOM_ADC_CURRENT_MEASUREMENT) && defined(INVERTED_SHUNT_POLARITY)
+#define GET_CURRENT1()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR1] + ADC_Value[ADC_IND_CURR1_2] + ADC_Value[ADC_IND_CURR1_3]))/3.0))
+#define GET_CURRENT2()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR2] + ADC_Value[ADC_IND_CURR2_2] + ADC_Value[ADC_IND_CURR2_3]))/3.0))
+#define GET_CURRENT3()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR3] + ADC_Value[ADC_IND_CURR3_2] + ADC_Value[ADC_IND_CURR3_3]))/3.0))
+#elif defined(CUSTOM_ADC_CURRENT_MEASUREMENT)
+#define GET_CURRENT1()		(((float)(ADC_Value[ADC_IND_CURR1] + ADC_Value[ADC_IND_CURR1_2] + ADC_Value[ADC_IND_CURR1_3]))/3.0)
+#define GET_CURRENT2()		(((float)(ADC_Value[ADC_IND_CURR2] + ADC_Value[ADC_IND_CURR2_2] + ADC_Value[ADC_IND_CURR2_3]))/3.0)
+#define GET_CURRENT3()		(((float)(ADC_Value[ADC_IND_CURR3] + ADC_Value[ADC_IND_CURR3_2] + ADC_Value[ADC_IND_CURR3_3]))/3.0)
+#endif
 // Macros
 #define READ_HALL1()			palReadPad(HW_HALL_ENC_GPIO1, HW_HALL_ENC_PIN1)
 #define READ_HALL2()			palReadPad(HW_HALL_ENC_GPIO2, HW_HALL_ENC_PIN2)
@@ -287,10 +307,10 @@
 #define MCCONF_SI_WHEEL_DIAMETER		0.270 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
 //#define MCCONF_MAX_CURRENT_UNBALANCE		130.0	// [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
-#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.5		// Fault if more than 50% of the time the motor is unbalanced
+#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.4		// Fault if more than 50% of the time the motor is unbalanced
 
 // APP OVERRIDE
-#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_OFF_AFTER_10S
+#define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_ALWAYS_ON
 #define APPCONF_CAN_STATUS_RATE_1			100
 #define APPCONF_CAN_STATUS_RATE_2			10
 #define APPCONF_ADC_HYST					0.05

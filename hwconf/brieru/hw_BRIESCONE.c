@@ -137,28 +137,35 @@ void hw_init_gpio(void) {
 
 void hw_setup_adc_channels(void) {
 	// ADC1 regular channels
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 2, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 3, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_14, 4, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_Vrefint, 5, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 6, ADC_SampleTime_15Cycles);
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_15Cycles);     // SENS3
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 2, ADC_SampleTime_15Cycles);    // CURR3
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 3, ADC_SampleTime_15Cycles);    // CURR3_2
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 4, ADC_SampleTime_15Cycles);    // CURR3_3
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 5, ADC_SampleTime_15Cycles);     // SENS3_2
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 6, ADC_SampleTime_15Cycles);     // ADC_EXT1
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_14, 7, ADC_SampleTime_15Cycles);    // TEMP_MOS
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_Vrefint, 8, ADC_SampleTime_56Cycles); // Vrefint
 
 	// ADC2 regular channels
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 1, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_11, 2, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_6, 3, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 4, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_0, 5, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_9, 6, ADC_SampleTime_15Cycles);
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 1, ADC_SampleTime_15Cycles);     // SENS2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_11, 2, ADC_SampleTime_15Cycles);    // CURR2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_11, 3, ADC_SampleTime_15Cycles);    // CURR2_2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_11, 4, ADC_SampleTime_15Cycles);    // CURR2_3
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 5, ADC_SampleTime_15Cycles);     // SENS2_2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_6, 6, ADC_SampleTime_15Cycles);     // ADC_EXT2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 7, ADC_SampleTime_15Cycles);    // TEMP_MOS_2
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_8, 8, ADC_SampleTime_56Cycles);     // TEMP_MOTOR
 
 	// ADC3 regular channels
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 1, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 2, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_3, 3, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 4, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_1, 5, ADC_SampleTime_15Cycles);
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 6, ADC_SampleTime_15Cycles);
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 1, ADC_SampleTime_15Cycles);     // SENS1
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 2, ADC_SampleTime_15Cycles);    // CURR1
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 3, ADC_SampleTime_15Cycles);    // CURR1_2
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 4, ADC_SampleTime_15Cycles);    // CURR1_3
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 5, ADC_SampleTime_15Cycles);     // SENS1_2
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_3, 6, ADC_SampleTime_15Cycles);     // VIN_SENS
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_9, 7, ADC_SampleTime_15Cycles);     // TEMP_MOS_3
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 8, ADC_SampleTime_56Cycles);    // AN_IN
+
 
 	// Injected channels
 		// 1

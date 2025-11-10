@@ -154,7 +154,7 @@ void hw_setup_adc_channels(void) {
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 5, ADC_SampleTime_15Cycles);     // SENS2_2
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_6, 6, ADC_SampleTime_15Cycles);     // ADC_EXT2
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 7, ADC_SampleTime_15Cycles);    // TEMP_MOS_2
-	ADC_RegularChannelConfig(ADC2, ADC_Channel_8, 8, ADC_SampleTime_56Cycles);     // TEMP_MOTOR
+	ADC_RegularChannelConfig(ADC2, ADC_Channel_8, 8, ADC_SampleTime_15Cycles);     // TEMP_MOTOR
 
 	// ADC3 regular channels
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 1, ADC_SampleTime_15Cycles);     // SENS1
@@ -164,8 +164,8 @@ void hw_setup_adc_channels(void) {
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_2, 5, ADC_SampleTime_15Cycles);     // SENS1_2
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_3, 6, ADC_SampleTime_15Cycles);     // VIN_SENS
 	ADC_RegularChannelConfig(ADC3, ADC_Channel_9, 7, ADC_SampleTime_15Cycles);     // TEMP_MOS_3
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 8, ADC_SampleTime_56Cycles);    // AN_IN
-
+	//ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 8, ADC_SampleTime_56Cycles);    // AN_IN
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_3, 8, ADC_SampleTime_15Cycles);    // VIN_SENS_2 (PC3)
 
 	// Injected channels
 		// 1

@@ -108,7 +108,7 @@
  * 20 (3):  IN9		TEMP_MOS_3                      PB1
  * 21 (1):	Vrefint
  * 22 (2):  IN8		TEMP_MOTOR                      PB0
- * 23 (3):	IN13	AN_IN                           PC3
+ * 23 (3):	IN13	VIN_SENS_2                      PA3
  */
 
 #define HW_ADC_CHANNELS			24
@@ -139,8 +139,8 @@
 #define ADC_IND_TEMP_MOS_3		20
 #define ADC_IND_VREFINT			21
 #define ADC_IND_TEMP_MOTOR		22
-#define ADC_IND_EXT3			23
-
+//#define ADC_IND_EXT3			23
+#define ADC_IND_VIN_SENS_2      23
 
 // ADC macros and settings
 
@@ -158,11 +158,11 @@
 #define CURRENT_AMP_GAIN		20.0
 #endif
 #ifndef CURRENT_SHUNT_RES
-#define CURRENT_SHUNT_RES		(0.0005/8)
+#define CURRENT_SHUNT_RES		(0.0005/4)
 #endif
 
 // Input voltage
-#define GET_INPUT_VOLTAGE()		((V_REG / 4095.0) * (float)ADC_Value[ADC_IND_VIN_SENS] * ((VIN_R1 + VIN_R2) / VIN_R2))
+#define GET_INPUT_VOLTAGE()		((V_REG / 4095.0) * (float)ADC_V_SENSE * ((VIN_R1 + VIN_R2) / VIN_R2))
 
 // NTC Termistors
 #define NTC_RES(adc_val)		((4095.0 * 10000.0) / adc_val - 10000.0)
@@ -279,10 +279,15 @@
 //#define HW_PAS2_PIN HW_ICU_PIN
 
 // Measurement macros
+#ifdef ADC_IND_VIN_SENS_2
+#define ADC_V_SENSE         (((float)(ADC_Value[ADC_IND_VIN_SENS] + ADC_Value[ADC_IND_VIN_SENS_2]))/2.0)
+#else
+#define ADC_V_SENSE         ADC_Value[ADC_IND_VIN_SENS]
+#endif
 #define ADC_V_L1			(((float)(ADC_Value[ADC_IND_SENS1] + ADC_Value[ADC_IND_SENS1_2]))/2.0)
 #define ADC_V_L2			(((float)(ADC_Value[ADC_IND_SENS2] + ADC_Value[ADC_IND_SENS2_2]))/2.0)
 #define ADC_V_L3			(((float)(ADC_Value[ADC_IND_SENS3] + ADC_Value[ADC_IND_SENS3_2]))/2.0)
-#define ADC_V_ZERO			(ADC_Value[ADC_IND_VIN_SENS] / 2)
+#define ADC_V_ZERO			(ADC_V_SENSE / 2)
 #if defined(CUSTOM_ADC_CURRENT_MEASUREMENT) && defined(INVERTED_SHUNT_POLARITY)
 #define GET_CURRENT1()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR1] + ADC_Value[ADC_IND_CURR1_2] + ADC_Value[ADC_IND_CURR1_3]))/3.0))
 #define GET_CURRENT2()		(4095.0 - (((float)(ADC_Value[ADC_IND_CURR2] + ADC_Value[ADC_IND_CURR2_2] + ADC_Value[ADC_IND_CURR2_3]))/3.0))
@@ -344,9 +349,9 @@
 #define APPCONF_PPM_THROTTLE_EXP_MODE		THR_EXP_POLY
 
 // Setting limits
-#define HW_LIM_CURRENT			-1000.0, 1000.0
+#define HW_LIM_CURRENT			-600.0, 600.0
 #define HW_LIM_CURRENT_IN		-350.0, 350.0
-#define HW_LIM_CURRENT_ABS		0.0, 1200.0
+#define HW_LIM_CURRENT_ABS		0.0, 640.0
 #define HW_LIM_VIN				25.0, 85.0
 #define HW_LIM_ERPM				-100e3, 100e3
 #define HW_LIM_DUTY_MIN			0.0, 0.1

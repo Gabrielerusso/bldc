@@ -1459,9 +1459,10 @@ void mcpwm_adc_inj_int_handler(void) {
 
 	float curr0 = HW_GET_INJ_CURR1();
 	float curr1 = HW_GET_INJ_CURR2();
-
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
 	float curr0_2 = HW_GET_INJ_CURR1_S2();
 	float curr1_2 = HW_GET_INJ_CURR1_S2();
+#endif
 
 #ifdef HW_HAS_3_SHUNTS
 	float curr2 = HW_GET_INJ_CURR3();
@@ -1470,9 +1471,10 @@ void mcpwm_adc_inj_int_handler(void) {
 #ifdef INVERTED_SHUNT_POLARITY
 	curr0 = 4095 - curr0;
 	curr1 = 4095 - curr1;
-
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
 	curr0_2 = 4095 - curr0_2;
 	curr1_2 = 4095 - curr1_2;
+#endif
 #ifdef HW_HAS_3_SHUNTS
 	curr2 = 4095 - curr2;
 #endif
@@ -1523,8 +1525,10 @@ void mcpwm_adc_inj_int_handler(void) {
 	curr1_currsamp -= curr1_offset;
 	curr0 -= curr0_offset;
 	curr1 -= curr1_offset;
+#if CURR1_DOUBLE_SAMPLE || CURR2_DOUBLE_SAMPLE
 	curr0_2 -= curr0_offset;
 	curr1_2 -= curr1_offset;
+#endif
 
 #ifdef HW_HAS_3_SHUNTS
 	curr2_currsamp -= curr2_offset;

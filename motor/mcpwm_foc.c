@@ -2850,10 +2850,11 @@ void mcpwm_foc_tim_sample_int_handler(void) {
 		// Generate COM event here for synchronization
 		TIM_GenerateEvent(TIM1, TIM_EventSource_COM);
 		TIM_GenerateEvent(TIM8, TIM_EventSource_COM);
-
+#ifdef ENABLE_VIRTUAL_MOTOR
 		virtual_motor_int_handler(
 				m_motor_1.m_motor_state.v_alpha,
 				m_motor_1.m_motor_state.v_beta);
+#endif
 	}
 }
 
@@ -2865,11 +2866,10 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 
 	FOC_PROFILE_BEGIN();
 
-	bool is_second_motor = false;
 	int norm_curr_ofs = 0;
 
 #ifdef HW_HAS_DUAL_MOTORS
-	is_second_motor = is_v7;
+	bool is_second_motor = is_v7;
 	is_v7 = false;
 	norm_curr_ofs = is_second_motor ? 3 : 0;
 	motor_all_state_t *motor_now = is_second_motor ? (motor_all_state_t*)&m_motor_2 : (motor_all_state_t*)&m_motor_1;
@@ -3011,6 +3011,7 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 	float curr1 = 0;
 	float curr2 = 0;
 
+#ifdef HW_HAS_DUAL_MOTORS
 	// Get ADC readings 0-4095
 	if (is_second_motor) {
 		curr0 = GET_CURRENT1_M2();
@@ -3021,6 +3022,12 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 		curr1 = GET_CURRENT2();
 		curr2 = GET_CURRENT3();
 	}
+#else
+	// Get ADC readings 0-4095
+	curr0 = GET_CURRENT1();
+	curr1 = GET_CURRENT2();
+	curr2 = GET_CURRENT3();
+#endif
 
 #ifdef HW_HAS_DUAL_PARALLEL
 	// Add both currents together
@@ -3049,6 +3056,7 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 	motor_now->m_curr_unbalance = curr0 + curr1 + curr2;
 #endif	
 
+#ifdef HW_HAS_DUAL_MOTORS
 	// Scale to AMPs using calibrated scaling factors
 	if (is_second_motor) {
 		curr0 *= FAC_CURRENT1_M2;
@@ -3059,6 +3067,11 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 		curr1 *= FAC_CURRENT2;
 		curr2 *= FAC_CURRENT3;
 	}
+#else
+	curr0 *= FAC_CURRENT1;
+	curr1 *= FAC_CURRENT2;
+	curr2 *= FAC_CURRENT3;
+#endif
 
 #ifndef HW_HAS_3_SHUNTS	
 	// Calculate third current assuming they are balanced
@@ -3241,6 +3254,7 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 	volatile float enc_ang = 0;
 	volatile bool encoder_is_being_used = false;
 
+#ifdef ENABLE_VIRTUAL_MOTOR
 	if (virtual_motor_is_connected()) {
 		if (conf_now->foc_sensor_mode == FOC_SENSOR_MODE_ENCODER ||
 				conf_now->foc_sensor_mode == FOC_SENSOR_MODE_ENCODER_AB) {
@@ -3253,6 +3267,12 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 			encoder_is_being_used = true;
 		}
 	}
+#else
+	if (encoder_is_configured()) {
+		enc_ang = encoder_read_deg();
+		encoder_is_being_used = true;
+	}
+#endif
 
 	FOC_PROFILE_LINE_FINE();
 
@@ -3456,7 +3476,11 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 
 			switch (conf_now->foc_sensor_mode) {
 			case FOC_SENSOR_MODE_ENCODER:
+#ifdef ENABLE_VIRTUAL_MOTOR
 				if (encoder_index_found() || virtual_motor_is_connected()) {
+#else
+				if (encoder_index_found()) {
+#endif
 					state_now->phase = foc_correct_encoder(
 							motor_now->m_phase_now_observer,
 							motor_now->m_phase_now_encoder,

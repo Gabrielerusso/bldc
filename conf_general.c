@@ -997,7 +997,7 @@ __attribute__((section(".text2"))) int conf_general_measure_flux_linkage_openloo
 		return fault;
 	}
 	// Calculate kp and ki from supplied resistance and inductance, default to 1000us time constant.
-	float tc = 1500;
+	float tc = 1000;
 	float bw = 1.0 / (tc * 1e-6);
 	float kp = ind * bw;
 	float ki = res * bw;

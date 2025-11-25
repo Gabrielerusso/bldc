@@ -2301,12 +2301,12 @@ int mcpwm_foc_measure_res_ind(float *res, float *ind, float *ld_lq_diff) {
 	i_last = (motor->m_conf->l_current_max / 2.0);
 #endif
 
-	fault = mcpwm_foc_measure_resistance(i_last, 200, true, res);
+	fault = mcpwm_foc_measure_resistance(i_last, 2000, true, res);
 	if (fault == FAULT_CODE_NONE && *res != 0.0) {
 		motor->m_conf->foc_motor_r = *res;
 		mcpwm_foc_set_current(0.0);
 		chThdSleepMilliseconds(10);
-		fault = mcpwm_foc_measure_inductance_current(i_last, 200, 0, ld_lq_diff, ind);
+		fault = mcpwm_foc_measure_inductance_current(i_last, 2000, 0, ld_lq_diff, ind);
 	}
 
 	exit_measure_res_ind:

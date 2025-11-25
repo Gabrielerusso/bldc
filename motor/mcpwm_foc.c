@@ -3078,6 +3078,7 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 
 	// Use the best current samples depending on the modulation state.
 #ifdef HW_HAS_3_SHUNTS
+#ifdef ENABLE_HIGH_CURRENT_SAMPLE_MODE
 	if (conf_now->foc_current_sample_mode == FOC_CURRENT_SAMPLE_MODE_HIGH_CURRENT) {
 		full_clarke = false;
 
@@ -3094,7 +3095,9 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 		} else if (i2_abs > i0_abs && i2_abs > i1_abs) {
 			curr2 = -(curr0 + curr1);
 		}
-	} else if (conf_now->foc_current_sample_mode == FOC_CURRENT_SAMPLE_MODE_LONGEST_ZERO) {
+	} else
+#endif 
+	if (conf_now->foc_current_sample_mode == FOC_CURRENT_SAMPLE_MODE_LONGEST_ZERO) {
 #ifdef HW_HAS_PHASE_SHUNTS
 		if (is_v7) {
 			if (tim->CCR1 < SHUNT_PICK_THR ||

@@ -144,7 +144,7 @@ void hw_setup_adc_channels(void) {
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 5, ADC_SampleTime_15Cycles);     // SENS3_2
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 6, ADC_SampleTime_15Cycles);     // ADC_EXT1
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_14, 7, ADC_SampleTime_15Cycles);    // TEMP_MOS
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_Vrefint, 8, ADC_SampleTime_56Cycles); // Vrefint
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_Vrefint, 8, ADC_SampleTime_15Cycles); // Vrefint
 
 	// ADC2 regular channels
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_1, 1, ADC_SampleTime_15Cycles);     // SENS2
@@ -172,14 +172,6 @@ void hw_setup_adc_channels(void) {
 	ADC_InjectedChannelConfig(ADC1, ADC_Channel_10, 1, ADC_SampleTime_15Cycles);
 	ADC_InjectedChannelConfig(ADC2, ADC_Channel_11, 1, ADC_SampleTime_15Cycles);
 	ADC_InjectedChannelConfig(ADC3, ADC_Channel_12, 1, ADC_SampleTime_15Cycles);
-		// 2
-	ADC_InjectedChannelConfig(ADC1, ADC_Channel_10, 2, ADC_SampleTime_15Cycles);
-	ADC_InjectedChannelConfig(ADC2, ADC_Channel_11, 2, ADC_SampleTime_15Cycles);
-	ADC_InjectedChannelConfig(ADC3, ADC_Channel_12, 2, ADC_SampleTime_15Cycles);
-		// 3
-	ADC_InjectedChannelConfig(ADC1, ADC_Channel_10, 3, ADC_SampleTime_15Cycles);
-	ADC_InjectedChannelConfig(ADC2, ADC_Channel_11, 3, ADC_SampleTime_15Cycles);
-	ADC_InjectedChannelConfig(ADC3, ADC_Channel_12, 3, ADC_SampleTime_15Cycles);
 }
 
 void hw_start_i2c(void) {

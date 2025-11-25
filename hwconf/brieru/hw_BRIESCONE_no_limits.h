@@ -29,10 +29,9 @@
 //#define HW_HAS_PHASE_SHUNTS
 #define HW_HAS_PHASE_FILTERS
 //#define HW_HAS_CURRENT_FILTER
-#define HW_INJECTED_SEQUENCE_AVERAGE
 
 // Execute FOC loop once every "FOC_CONTROL_LOOP_FREQ_DIVIDER" ADC ISR calls
-#define FOC_CONTROL_LOOP_FREQ_DIVIDER	1
+//#define FOC_CONTROL_LOOP_FREQ_DIVIDER	1
 
 // Macros
 #define LED_RED_GPIO			GPIOB
@@ -112,25 +111,30 @@
  */
 
 #define HW_ADC_CHANNELS			24
-#define HW_ADC_INJ_CHANNELS		3
+#define HW_ADC_INJ_CHANNELS		1
 #define HW_ADC_NBR_CONV			8
 
 // ADC Indexes
-#define ADC_IND_SENS1			2
-#define ADC_IND_SENS2			1
-#define ADC_IND_SENS3			0
-#define ADC_IND_CURR1			5
-#define ADC_IND_CURR2			4
-#define ADC_IND_CURR3			3
-#define ADC_IND_CURR1_2			8
-#define ADC_IND_CURR2_2			7
-#define ADC_IND_CURR3_2			6
-#define ADC_IND_CURR1_3			11
-#define ADC_IND_CURR2_3			10
-#define ADC_IND_CURR3_3			9
-#define ADC_IND_SENS1_2			14
-#define ADC_IND_SENS2_2			13
-#define ADC_IND_SENS3_2			12
+#define ADC_IND_SENS3      0
+#define ADC_IND_SENS2      1
+#define ADC_IND_SENS1      2
+
+#define ADC_IND_CURR3      3
+#define ADC_IND_CURR2      4
+#define ADC_IND_CURR1      5
+
+#define ADC_IND_CURR3_2    6
+#define ADC_IND_CURR2_2    7
+#define ADC_IND_CURR1_2    8
+
+#define ADC_IND_CURR3_3    9
+#define ADC_IND_CURR2_3    10
+#define ADC_IND_CURR1_3    11
+
+#define ADC_IND_SENS3_2    12
+#define ADC_IND_SENS2_2    13
+#define ADC_IND_SENS1_2    14
+
 #define ADC_IND_EXT				15
 #define ADC_IND_EXT2			16
 #define ADC_IND_VIN_SENS		17
@@ -298,6 +302,9 @@
 #define GET_CURRENT3()		(((float)(ADC_Value[ADC_IND_CURR3] + ADC_Value[ADC_IND_CURR3_2] + ADC_Value[ADC_IND_CURR3_3]))/3.0)
 #endif
 
+#define HW_GET_INJ_CURR1()		ADC_GetInjectedConversionValue(ADC3, ADC_InjectedChannel_1)
+#define HW_GET_INJ_CURR2()		ADC_GetInjectedConversionValue(ADC2, ADC_InjectedChannel_1)
+#define HW_GET_INJ_CURR3()		ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1)
 // Macros
 #define READ_HALL1()			palReadPad(HW_HALL_ENC_GPIO1, HW_HALL_ENC_PIN1)
 #define READ_HALL2()			palReadPad(HW_HALL_ENC_GPIO2, HW_HALL_ENC_PIN2)
@@ -316,7 +323,7 @@
 #define MCCONF_FOC_SAMPLE_V0_V7			FOC_CONTROL_SAMPLE_MODE_V0_V7_INTERPOL	// Run control loop
 #define MCCONF_L_IN_CURRENT_MAX			0.0	// Input current limit in Amperes (Upper)
 #define MCCONF_L_IN_CURRENT_MIN			-0.0	// Input current limit in Amperes (Lower)
-#define MCCONF_FOC_CURRENT_FILTER_CONST	0.8		// Filter constant for the filtered currents
+#define MCCONF_FOC_CURRENT_FILTER_CONST	0.1		// Filter constant for the filtered currents
 #define MCCONF_FOC_TEMP_COMP			false	// Motor temperature compensation
 #define MCCONF_FOC_TEMP_COMP_BASE_TEMP	25.0	// Motor temperature compensation base temperature
 #define MCCONF_M_NTC_MOTOR_BETA			3435.0 // Beta value for motor termistor
@@ -333,7 +340,7 @@
 #define MCCONF_SI_WHEEL_DIAMETER		0.615 // Wheel Diameter
 #define MCCONF_BMS_TYPE					BMS_TYPE_NONE
 //#define MCCONF_MAX_CURRENT_UNBALANCE		450	    // [Amp] More than this unbalance trips the fault (likely a sensor disconnected)
-#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.4		// Fault if more than 50% of the time the motor is unbalanced
+//#define MCCONF_MAX_CURRENT_UNBALANCE_RATE	0.4		// Fault if more than 50% of the time the motor is unbalanced
 
 // APP OVERRIDE
 #define APPCONF_SHUTDOWN_MODE				SHUTDOWN_MODE_ALWAYS_ON
